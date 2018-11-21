@@ -1,10 +1,14 @@
 (in-package :funcl)
+(annot:enable-annot-syntax)
+
+@export
 (defun differentiate-polynomial-coefficients (coefficients)
   (if (< (length coefficients) 2)
       #(0)
       (map 'vector '* (alexandria:iota (1- (length coefficients)) :start 1)
            (make-array (1- (length coefficients)) :displaced-to coefficients :displaced-index-offset 1))))
 
+@export
 (defun evaluate-polynomial (coefficients arg)
   (let ((n (1- (length coefficients))))
     (loop with b = (aref coefficients n)
@@ -12,11 +16,13 @@
        do (setf b (+ (aref coefficients i) (* b arg)))
        finally (return b))))
 
+@export-class
 (defclass polynomial-function (funcl-function)
   ((coefficients :accessor coefficients :initarg :coefficients)
    (domain :initform 'square-matrix)
    (range :initform 'square-matrix)))
 
+@export
 (defun make-polynomial (coefficients)
   (make-instance 'polynomial-function
                  :coefficients coefficients
@@ -25,9 +31,12 @@
                  :differentiator (lambda () (make-polynomial (differentiate-polynomial-coefficients coefficients)))
                  :lambda-function (lambda (arg) (evaluate-polynomial coefficients arg))))
 
-(defun |#q-reader| (stream sub-char numarg) (make-polynomial (apply #'vector (read stream))))
+(defun |#q-reader| (stream &optional sub-char numarg)
+  @ignore sub-char numarg
+  (make-polynomial (apply #'vector (read stream))))
 
-(set-dispatch-macro-character #\# #\q #'|#q-reader|)
+@export
+(defun monomial (n) (make-polynomial (coerce (append (make-list n :initial-element 0) '(1)) 'vector)))
 
 (defmethod print-object ((object polynomial-function) stream)
   (format stream "#q(~{~s~^ ~})" (coerce (coefficients object) 'list)))
@@ -56,6 +65,8 @@
 
 (defun add-polynomials (a b) (map 'vector #'+ (ensure-length-of a b) (ensure-length-of b a)))
 (defun scale-polynomial (a scale) (map 'vector (alexandria:curry #'* scale) a))
+
+@export
 (defun constant (a) (make-polynomial (vector a)))
 
 (bld-gen:defmeth2 + ((a polynomial-function) (b polynomial-function))
@@ -80,6 +91,9 @@
                                                  do (psetf p1 p2
                                                            p2 (- (* p2 (make-polynomial #(0 2))) p1))) 'vector))
 
+@export
 (defun nth-chebyshev-node (n) (aref *chebyshev-polynomials* n))
+
+@export
 (defun chebyshev-series (vector) 
   (reduce #'+ (map 'vector #'* vector *chebyshev-polynomials*)))

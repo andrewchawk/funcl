@@ -14,6 +14,8 @@
   :depends-on ("magicl"
                "lparallel"
                "local-time"
+               "named-readtables"
+               "cl-annot"
                "bld-gen"
                "bld-ode"
                "eazy-gnuplot")
@@ -25,7 +27,8 @@
                  (:file "polynomial" :depends-on ("funcl"))
                  (:file "ode" :depends-on ("funcl"))
                  (:file "plot")
-                 (:file "generics" :depends-on ("funcl")))))
+                 (:file "generics" :depends-on ("funcl"))
+                 (:file "readtable" :depends-on ("polynomial")))))
   :description ""
   :long-description
   #.(read-file-string

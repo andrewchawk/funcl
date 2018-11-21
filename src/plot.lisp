@@ -1,9 +1,10 @@
 (in-package :funcl)
-
+(annot:enable-annot-syntax)
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (setf lparallel:*kernel* (lparallel:make-kernel 48)))
 
+@export
 (defclass gnuplot-options ()
   ((title :initarg :title :accessor title)
    (debug :initarg :debug :accessor debug-p :initform nil)
@@ -20,6 +21,7 @@
                                                 (substitute #\_ #\. 
                                                             (local-time:format-timestring nil (local-time:now)))))) extension)))
 
+@export
 (defun simple-gnuplot-options (&key (title "f(x)") 
                                  (terminals (list 
                                              (list '(:cairolatex :pdf :color :standalone :blacktext
@@ -29,6 +31,7 @@
                                  (wait-for-x11 t))
   (make-instance 'gnuplot-options :title title :terminals terminals :wait-for-x11 wait-for-x11))
 
+@export
 (defgeneric plot-with-options (function options))
 
 (defun function-plot-start (function)
