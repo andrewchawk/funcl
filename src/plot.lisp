@@ -34,6 +34,10 @@
 @export
 (defgeneric plot-with-options (function options))
 
+@export
+(defun plot (function)
+  (plot-with-options function (simple-gnuplot-options)))
+
 (defun function-plot-start (function)
   (with-slots (domain) function
     (if (consp domain)

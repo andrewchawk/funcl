@@ -1,5 +1,5 @@
 (defpackage funcl
-  (:use :cl :annot.class :named-readtables)
+  (:use :cl :annot.class :cl-syntax)
   (:shadowing-import-from :bld-gen
                           + - * / expt
                           sin cos tan
@@ -31,6 +31,7 @@
 (defmethod differentiate ((function funcl-function)) (funcall (differentiator function)))
 
 @export
+
 (defgeneric name (function))
 (defmethod name ((function funcl-function)) "f")
 

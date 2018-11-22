@@ -14,7 +14,7 @@
   :depends-on ("magicl"
                "lparallel"
                "local-time"
-               "named-readtables"
+               "cl-syntax"
                "cl-annot"
                "bld-gen"
                "bld-ode"
