@@ -13,6 +13,7 @@
   :license "LLGPL"
   :depends-on ("magicl"
                "lparallel"
+               "staple" ; for documentation
                "local-time"
                "cl-syntax"
                "cl-annot"
