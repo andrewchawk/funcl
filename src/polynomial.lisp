@@ -3,6 +3,7 @@
 
 @export
 (defun differentiate-polynomial-coefficients (coefficients)
+  "Implements polynomial differentation. coefficients must be of type vector arranged in order of increasing degree e.g. $$2x^2 + 4x + 1$$ is represented by #(1 4 2)."
   (if (< (length coefficients) 2)
       #(0)
       (map 'vector '* (alexandria:iota (1- (length coefficients)) :start 1)
@@ -10,6 +11,7 @@
 
 @export
 (defun evaluate-polynomial (coefficients arg)
+  "Evaluates a polynomial at arg using Horner's method. coefficients must be of type vector arranged in order of increasing degree e.g. $$2x^2 + 4x + 1$$ is represented by #(1 4 2)."
   (let ((n (1- (length coefficients))))
     (loop with b = (aref coefficients n)
        for i from (1- n) downto 0 
@@ -20,7 +22,8 @@
 (defclass polynomial-function (funcl-function)
   ((coefficients :accessor coefficients :initarg :coefficients)
    (domain :initform 'square-matrix)
-   (range :initform 'square-matrix)))
+   (range :initform 'square-matrix))
+  (:documentation "Represents a polynomial. coefficients must be of type vector arranged in order of increasing degree e.g. $$2x^2 + 4x + 1$$ is represented by #(1 4 2)."))
 
 @export
 (defun make-polynomial (coefficients)
@@ -96,4 +99,5 @@
 
 @export
 (defun chebyshev-series (vector) 
+  "Returns a Chebyshev series $$\\Sigma^{N}_{i=1} a_i T_i(x) $$ where $$T_i(x)$$ are the Chebyshev polynomials of the first kind."
   (reduce #'+ (map 'vector #'* vector *chebyshev-polynomials*)))

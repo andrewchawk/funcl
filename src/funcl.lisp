@@ -15,10 +15,11 @@
 
 @export
 (defclass funcl-function () 
-  ((domain :initarg :domain :accessor domain)
-   (range :initarg :range :accessor range)
-   (lambda-function :accessor lambda-function :initarg :lambda-function)
-   (differentiator :accessor differentiator :initarg :differentiator)))
+  ((domain :initarg :domain :accessor domain :documentation "S-expression that represents the domain of the function e.g. scalar, (matrix 3 3)")
+   (range :initarg :range :accessor range :documentation "S-expression that represents the range of the function e.g. (vector 2), (square-matrix n)")
+   (lambda-function :accessor lambda-function :initarg :lambda-function :documentation "Common Lisp function object that evaluates this function at a particular argument and returns the result.")
+   (differentiator :accessor differentiator :initarg :differentiator :documentation ""))
+  (:documentation "A general mathematical function from a specified domain to a range."))
 
 @export
 (defgeneric evaluate (function argument))
@@ -31,8 +32,9 @@
 (defmethod differentiate ((function funcl-function)) (funcall (differentiator function)))
 
 @export
+(defgeneric name (function)
+  (:documentation "Returns the mathematician-friendly name of the function."))
 
-(defgeneric name (function))
 (defmethod name ((function funcl-function)) "f")
 
 (defmethod print-object ((object funcl-function) stream)
@@ -42,6 +44,7 @@
       (format stream "~d: ~A -> ~A" (name object) (domain object) (range object)))))
 
 @export
-(defun restrict-domain (function domain)
-  (setf (domain function) domain)
+(defun restrict-domain! (function new-domain)
+  "Setfs the domain slot of function to be new-domain and returns function."
+  (setf (domain function) new-domain)
   function)
