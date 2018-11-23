@@ -20,6 +20,7 @@
                "bld-gen"
                "bld-ode"
                "eazy-gnuplot")
+  :source-control (:git "https://github.com/selwynsimsek/funcl.git")
   :components ((:module "src"
                 :components
                 ((:file "funcl")
