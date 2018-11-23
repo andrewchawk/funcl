@@ -6,7 +6,7 @@ Current features include:
 
 * Function algebra: addition, multiplication, composition of functions
 * Fast linear algebra via [magicl][magicl] and BLAS/LAPACK
-* Function plotting using eazy-gnuplot
+* Function plotting using [eazy-gnuplot][eazy-gnuplot]
 
 ## Usage
 
