@@ -20,6 +20,10 @@ Most of funcl's dependencies can be pulled in via Quicklisp. Those which require
 * bld-ode
 * eazy-gnuplot
 
+  [magicl]: https://github.com/rigetticomputing/magicl
+  [bld-ode]: https://github.com/bld/bld-ode
+  [eazy-gnuplot]: https://github.com/guicho271828/eazy-gnuplot/
+
 ## Author
 
 * Selwyn Simsek (sgs16@ic.ac.uk)
