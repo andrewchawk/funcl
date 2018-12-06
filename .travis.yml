@@ -19,6 +19,9 @@ env:
 
 install:
   - curl -L https://github.com/luismbo/cl-travis/raw/master/install.sh | sh
+  - git clone https://github.com/rigetti/magicl ~/lisp/magicl
+  - git clone https://github.com/guicho271828/eazy-gnuplot/ ~/lisp/eazy-gnuplot
+  - git clone https://github.com/bld/bld-ode ~/lisp/bld-ode
   - if [ "${LISP:(-2)}" = "32" ]; then
       sudo apt-get install -y libc6-dev-i386;
     fi
