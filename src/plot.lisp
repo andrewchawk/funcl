@@ -10,6 +10,8 @@
    (debug :initarg :debug :accessor debug-p :initform nil)
    (granularity :initarg :granularity :accessor granularity :initform 1000)
    (terminals :initarg :terminals :accessor terminals :initform :x11)
+   (x-label :initarg :x-label)
+   (y-label :initarg :y-label)
    (wait-for-x11 :initarg :wait-for-x11 :accessor wait-for-x11-p :initform t)))
 
 (defun plot-output-now (&key (extension "tex"))
@@ -28,8 +30,10 @@
                                                      :|size 16cm ,10.5cm|) 
                                                    (plot-output-now))
                                              (list '(:x11) (lambda () nil))))
-                                 (wait-for-x11 t))
-  (make-instance 'gnuplot-options :title title :terminals terminals :wait-for-x11 wait-for-x11))
+                                 (wait-for-x11 t)
+                                 (x-label "")
+                                 (y-label ""))
+  (make-instance 'gnuplot-options :title title :terminals terminals :wait-for-x11 wait-for-x11 :x-label x-label :y-label y-label))
 
 @export
 (defgeneric plot-with-options (function options))
@@ -51,7 +55,7 @@
         1)))
 
 (defmethod plot-with-options ((function-list list) (options gnuplot-options))
-  (with-slots (debug range granularity terminals wait-for-x11) options
+  (with-slots (debug range granularity terminals wait-for-x11 x-label y-label) options
     (loop for (terminal output-lambda) in terminals do
          (let ((output (funcall output-lambda)))
            (eazy-gnuplot:with-plots (*standard-output* :debug debug)
@@ -59,6 +63,7 @@
              (when (slot-boundp options 'title)
                (format t "~% set title ~s" (title options))
                (format t "~% show title ~%"))
+             (format t "~% set xlabel ~s~% show xlabel ~% set ylabel ~s~% show ylabel ~%" x-label y-label)
              (loop for function in function-list
                 for index from 1 doing
                   (with-slots (lambda-function domain) function

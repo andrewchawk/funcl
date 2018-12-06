@@ -9,4 +9,4 @@
 @export
 (defun merge-readtable ()
   "Convenience function to merge the funcl custom readtable into *readtable*."
-  (named-readtables:merge-readtables-into *readtable* funcl:syntax))
+  (named-readtables:merge-readtables-into  *readtable* funcl::syntax))

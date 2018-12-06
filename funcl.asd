@@ -25,8 +25,9 @@
                 :components
                 ((:file "funcl")
                  (:file "types")
+                 (:file "sequence-utils")
                  (:file "matrix-routines" :depends-on ("funcl"))
-                 (:file "polynomial" :depends-on ("funcl"))
+                 (:file "polynomial" :depends-on ("funcl" "sequence-utils"))
                  (:file "ode" :depends-on ("funcl"))
                  (:file "plot")
                  (:file "generics" :depends-on ("funcl"))
