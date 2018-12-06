@@ -1,7 +1,15 @@
 (defpackage funcl-test
   (:use :cl
         :funcl
-        :prove))
+        :prove)
+  (:shadowing-import-from :bld-gen
+                          + - * / expt
+                          sin cos tan
+                          atan asin acos
+                          sinh cosh tanh
+                          asinh acosh atanh
+                          log exp sqrt abs
+                          min max signum))
 (in-package :funcl-test)
 
 ;; NOTE: To run this test file, execute `(asdf:test-system :funcl)' in your Lisp.
@@ -10,9 +18,28 @@
 
 (funcl:merge-readtable)
 
-(is #q(1 2) (differentiate #q(1 1 1)) :test #'polynomial=)
+; single variable
 
-;; blah blah blah.
+(is #q(1 2 3) #q(1 2 3) :test #'polynomial=)
+(is (differentiate #q(1 1 1)) #q(1 2) :test #'polynomial=)
+(is (differentiate #q(5 4 3 2 1 2))  #q(4 6 6 4 10) :test #'polynomial=)
+(is (+ #q( 4 2 1) #q (8 3)) #q(12 5 1) :test #'polynomial=)
+(is (- #q(3 2 1 2)) #q(-3 -2 -1 -2) :test #'polynomial=)
+(is (* #q(1 3 5 ) #q(2 4 6)) #q (2 10 28 38 30) :test #'polynomial=)
+(is (* #q(1/10 3/10 4/5) 7) #q(7/10 21/10 28/5) :test #'polynomial=)
+
+; multivariate
+
+; evaluate
+; differentiate
+; multiply polynomials
+; multiply by scalar
+; add
+; subtract
+; gradient
+; gradient-squared
+; laplacian
+
 
 (finalize)
 
