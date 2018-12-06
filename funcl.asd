@@ -31,6 +31,7 @@
                  (:file "ode" :depends-on ("funcl"))
                  (:file "plot")
                  (:file "generics" :depends-on ("funcl"))
+                 (:file "interpolation" :depends-on ("polynomial"))
                  (:file "readtable" :depends-on ("polynomial")))))
   :description ""
   :long-description

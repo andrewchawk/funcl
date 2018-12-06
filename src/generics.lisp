@@ -163,3 +163,24 @@
                  :lambda-function (lambda (arg) (aref (evaluate function arg) i))
                  :differentiator (lambda () (ith-component (differentiate function) i))))
 
+
+
+(bld-gen:defmeth2 + ((a multivariate-polynomial) (b multivariate-polynomial))
+  (make-multivariate-polynomial (add-multivariate-polynomial-coefficients 
+                                 (coefficients a) (coefficients b))))
+
+(bld-gen:defmeth2 * ((a multivariate-polynomial) (b multivariate-polynomial))
+  (make-multivariate-polynomial (multiply-multivariate-polynomial-coefficients 
+                                 (coefficients a) (coefficients b))))
+
+(bld-gen:defmeth2 * ((a multivariate-polynomial) (b number)) 
+  (make-multivariate-polynomial (scalar-multiply-multivariate-polynomial-coefficients
+                                 b (coefficients a))))
+
+(bld-gen:defmeth2 * ((a number) (b multivariate-polynomial)) (* b a))
+
+(bld-gen:defmeth1 - ((a multivariate-polynomial)) 
+  (make-multivariate-polynomial 
+   (scalar-multiply-multivariate-polynomial-coefficients -1 (coefficients a))))
+
+(bld-gen:defmeth2 - ((a multivariate-polynomial) (b multivariate-polynomial)) (+ a (- b)))

@@ -34,11 +34,11 @@
                     (incf (nth (1- i) new-ref))))
               (return new-ref)))))
 
-(defun jump-ref (ref index)
-  (loop for r in ref
-       for i from 0 below (length ref)
+(defun jump-place (place index &optional (delta 1))
+  (loop for r in place
+       for i from 0 below (length place)
        collecting (if (eq i index)
-                      (1+ r)
+                      (+ delta r)
                       r)))
 
 (defun binary-and (v1 v2) (and v1 v2))

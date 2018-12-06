@@ -8,6 +8,10 @@
 
 (plan nil)
 
+(funcl:merge-readtable)
+
+(is #q(1 2) (differentiate #q(1 1 1)) :test #'polynomial=)
+
 ;; blah blah blah.
 
 (finalize)
