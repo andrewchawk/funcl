@@ -73,7 +73,7 @@
                      :coefficients coefficients
                       :lambda-function (lambda (arg)
                                          (evaluate-multivariate-polynomial coefficients arg))
-                     :differentiator (lambda () (apply #'values 
+                     :differentiator (lambda () (apply #'vector 
                                                        (loop for i from 0 below
                                                             (array-rank coefficients)
                                                           collecting
@@ -147,6 +147,10 @@
                      collecting (differentiate-multivariate-polynomial coefficients i)) 'vector))
 
 @export
+(defun partial-derivative (multivariate-polynomial index)
+  (make-multivariate-polynomial (differentiate-multivariate-polynomial (coefficients multivariate-polynomial) index)))
+
+@export
 (defun gradient (multivariate-polynomial)
   (map 'vector #'make-multivariate-polynomial 
        (gradient-coefficients (coefficients multivariate-polynomial))))
@@ -169,4 +173,6 @@
 
 @export
 (defun polynomial= (function-1 function-2)
-  (apply #'all (coerce (array-map #'= (coefficients function-1) (coefficients function-2)) 'list)))
+  (apply #'all 
+         (coerce (flatten-array (array-map #'= (coefficients function-1) (coefficients function-2))) 'list)))
+

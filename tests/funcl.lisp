@@ -27,10 +27,19 @@
 (is (- #q(3 2 1 2)) #q(-3 -2 -1 -2) :test #'polynomial=)
 (is (* #q(1 3 5 ) #q(2 4 6)) #q (2 10 28 38 30) :test #'polynomial=)
 (is (* #q(1/10 3/10 4/5) 7) #q(7/10 21/10 28/5) :test #'polynomial=)
+(is (evaluate #q(8 7 2 3) 2) 54 )
 
 ; multivariate
 
 ; evaluate
+(is #2q((5 3) (2 4)) #2q((5 3) (2 4)) :test #'polynomial=)
+(let ((p #2q((1 2) (3 4)))
+      (q #2q((1 2 3) (4 5 6) (7 8 9)))
+      (r #3q(((8 2) (7 4)) ((3  5) (8  6)) ((1  7) (5  6)))))
+  (is (evaluate p #(1 3)) 22)
+  (is (evaluate p #(3 1)) 24)
+  (is (partial-derivative p 0) #2q((3 4)) :test #'polynomial=)
+  (is (partial-derivative p 1) #2q((2) (4)) :test #'polynomial=))
 ; differentiate
 ; multiply polynomials
 ; multiply by scalar

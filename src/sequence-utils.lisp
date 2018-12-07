@@ -80,3 +80,6 @@
           while ,place-symbol
             ,@body
           do (setf ,place-symbol (increment ,place-symbol (array-dimensions ,name-symbol)))))))
+
+@export
+(defun flatten-array (array) (make-array (array-total-size array) :displaced-to array))
