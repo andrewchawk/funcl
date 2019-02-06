@@ -30,14 +30,46 @@
 
 @export
 (defun tricubic-interpolation (values)
-  "Returns a tricubic interpolating function that is equal to `values' sampled on the 4x4x4 grid of points the innermost of which bound a cube of interest."
+  "Returns a tricubic interpolating function that is equal to `values' sampled on the 4x4x4 grid of points the innermost of which bound a cube of interest. values must be in the form of a 64x1 magicl matrix."
   (make-multivariate-polynomial 
    (make-array '(4 4 4)
                :displaced-to 
                (map 'vector #'realpart (magicl::matrix-data
                                (magicl:multiply-complex-matrices
                                 *tricubic-interpolator-matrix*
-                                (magicl:make-complex-matrix 64 1 values)))))))
+                                values))))))
+
+(defclass piecewise-function (funcl-function)
+  ((domain :initform '(vector 3))
+   (range :initform 'scalar)
+   (dispatcher :initarg :dispatcher :initform  (error "Need one of these"))
+   (piece-function :initarg :piece-function :initform (error "Need one of these")))
+  (:documentation "Interpolates a function over a grid."))
+
+@export
+(defun make-piecewise-function (dispatcher piece-function)
+  (make-instance 'piecewise-function
+                 :dispatcher dispatcher
+                 :piece-function piece-function
+                 :lambda-function (lambda (arg) (evaluate (funcall piece-function (funcall dispatcher arg))
+                                                          arg))
+                 :differentiator (lambda () (make-piecewise-function
+                                             dispatcher
+                                             (lambda (arg) (differentiate
+                                                            (funcall piece-function arg)))))))
+
+@export
+(defun make-grid-interpolator (piece-function x-min dx x-length y-min dy y-length z-min dz z-length)
+  (make-piecewise-function 
+   (lambda (vector)
+     (let ((x (aref vector 0))
+           (y (aref vector 1))
+           (z (aref vector 2)))
+       (vector (floor (* dx (/ (- x x-min) x-length)))
+               (floor (* dy (/ (- y y-min) y-length)))
+               (floor (* dz (/ (- z z-min) z-length))))))
+   (lambda (arg)
+     (funcall piece-function arg))))
 
 ;; Chebyshev interpolation routines
 

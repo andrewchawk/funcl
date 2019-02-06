@@ -2,7 +2,8 @@
 (annot:enable-annot-syntax)
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
-  (setf lparallel:*kernel* (lparallel:make-kernel 48)))
+  (setf lparallel:*kernel*
+        (lparallel:make-kernel (or (hpc-tools:ncpus) 1))))
 
 @export
 (defclass gnuplot-options ()
@@ -10,6 +11,8 @@
    (debug :initarg :debug :accessor debug-p :initform nil)
    (granularity :initarg :granularity :accessor granularity :initform 1000)
    (terminals :initarg :terminals :accessor terminals :initform :x11)
+   (x-min :initarg :x-min :initform 0)
+   (x-max :initarg :x-max :initform 1)
    (x-label :initarg :x-label)
    (y-label :initarg :y-label)
    (wait-for-x11 :initarg :wait-for-x11 :accessor wait-for-x11-p :initform t)))
@@ -32,8 +35,25 @@
                                              (list '(:x11) (lambda () nil))))
                                  (wait-for-x11 t)
                                  (x-label "")
+                                 (x-min 0)
+                                 (x-max 1)
                                  (y-label ""))
-  (make-instance 'gnuplot-options :title title :terminals terminals :wait-for-x11 wait-for-x11 :x-label x-label :y-label y-label))
+  (make-instance 'gnuplot-options :title title :terminals terminals :wait-for-x11 wait-for-x11 :x-label x-label :y-label y-label :x-min x-min :x-max x-max))
+
+@export
+(defun gnuplot-options (&key (title "") (x11 nil) (x-label "") (x-min 0) (x-max 1) (y-label ""))
+  (make-instance 'gnuplot-options :title title :wait-for-x11 t :x-label x-label :y-label y-label
+                 :x-min x-min :x-max x-max
+                 :terminals (if x11 
+                                (list 
+                                 (list '(:cairolatex :pdf :color :standalone :blacktext
+                                         :|size 16cm ,10.5cm|) 
+                                       (plot-output-now))
+                                 (list '(:x11) (lambda () nil)))
+                                (list 
+                                 (list '(:cairolatex :pdf :color :standalone :blacktext
+                                         :|size 16cm ,10.5cm|) 
+                                       (plot-output-now))))))
 
 @export
 (defgeneric plot-with-options (function options))
@@ -44,18 +64,18 @@
 
 (defun function-plot-start (function)
   (with-slots (domain) function
-    (if (consp domain)
+    (if (and (consp domain) (numberp (car domain)))
         (car domain)
         0)))
 
 (defun function-plot-end (function)
   (with-slots (domain) function
-    (if (consp domain)
+    (if (and (consp domain) (numberp (cdr domain)))
         (cdr domain)
         1)))
 
 (defmethod plot-with-options ((function-list list) (options gnuplot-options))
-  (with-slots (debug range granularity terminals wait-for-x11 x-label y-label) options
+  (with-slots (debug range granularity terminals wait-for-x11 x-label y-label x-min x-max) options
     (loop for (terminal output-lambda) in terminals do
          (let ((output (funcall output-lambda)))
            (eazy-gnuplot:with-plots (*standard-output* :debug debug)
@@ -67,8 +87,8 @@
              (loop for function in function-list
                 for index from 1 doing
                   (with-slots (lambda-function domain) function
-                    (let ((start (function-plot-start function))
-                          (end (function-plot-end function)))
+                    (let ((start x-min)
+                          (end x-max))
                       (eazy-gnuplot:plot
                        (lambda ()
                          (let* ((values (alexandria:iota granularity :step (/ (- end start) granularity) :start start))
@@ -78,10 +98,8 @@
              (when (and (member :x11 terminal)
                         wait-for-x11) (format t "~&pause mouse button1;~%")))
            (when (member :pdf terminal) (cl-user::run-interactively (format nil "pdflatex ~s" output))))))
-  (bt:make-thread 
-   (lambda ()
-     (cl-user::run-interactively "mogrify -verbose -density 500 -resize 1600 -format png ./*.pdf")
-     (cl-user::run-interactively (format nil "mv plot* /home/sgs16/plots"))))
+  (cl-user::run-interactively "mogrify -verbose -density 500 -resize 1600 -format png ./*.pdf")
+  (cl-user::run-interactively (format nil "mv plot* /rds/general/user/sgs16/home/plots"))
   t)
 
 (defmethod plot-with-options ((function funcl-function) (options gnuplot-options))

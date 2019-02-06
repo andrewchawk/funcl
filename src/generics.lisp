@@ -1,4 +1,5 @@
 (in-package :funcl)
+(cl-annot:enable-annot-syntax)
 
 (bld-gen:defmeth2 + ((a magicl:matrix) (b magicl:matrix))
   (let ((n (magicl:matrix-rows a))
@@ -33,6 +34,15 @@
       ('- (format nil "~d - ~d" name-1 name-2))
       ('/ (format nil "~d / ~d" name-1 name-2))
       ('compose (format nil "~d.~d" name-1 name-2)))))
+
+(defmethod name ((function number)) (format nil "~,3f" function))
+
+(defclass named-function (funcl-function)
+  ((name :accessor name :initarg :name)))
+
+@export
+(defun rename (function name)
+  (change-class function 'named-function :name name))
 
 (bld-gen:defmeth2 + ((a funcl-function) (b funcl-function))
   (make-instance 'combination-function 
@@ -109,6 +119,7 @@
 
 (bld-gen:defmeth1 / ((a funcl-function)) (/ 1 a))
 
+@export
 (defgeneric compose (a b))
 (defmethod compose ((a funcl-function) (b funcl-function))
   (make-instance 'combination-function 
@@ -184,3 +195,15 @@
    (scalar-multiply-multivariate-polynomial-coefficients -1 (coefficients a))))
 
 (bld-gen:defmeth2 - ((a multivariate-polynomial) (b multivariate-polynomial)) (+ a (- b)))
+
+(bld-gen:defmeth2 + ((a multivariate-polynomial) (b number))
+  (+ a (constant b)))
+
+(bld-gen:defmeth2 + ((a number) (b multivariate-polynomial))
+  (+ (constant a) b))
+
+(bld-gen:defmeth2 - ((a multivariate-polynomial) (b number))
+  (- a (constant b)))
+
+(bld-gen:defmeth2 - ((a number) (b multivariate-polynomial))
+  (- (constant a) b))

@@ -31,27 +31,34 @@
 
 ; multivariate
 
-; evaluate
+; read
 (is #2q((5 3) (2 4)) #2q((5 3) (2 4)) :test #'polynomial=)
 (let ((p #2q((1 2) (3 4)))
       (q #2q((1 2 3) (4 5 6) (7 8 9)))
       (r #3q(((8 2) (7 4)) ((3  5) (8  6)) ((1  7) (5  6)))))
+                                        ;evaluate
   (is (evaluate p #(1 3)) 22)
   (is (evaluate p #(3 1)) 24)
+                                        ;differentiate
   (is (partial-derivative p 0) #2q((3 4)) :test #'polynomial=)
-  (is (partial-derivative p 1) #2q((2) (4)) :test #'polynomial=))
-; differentiate
-; multiply polynomials
-; multiply by scalar
-; add
-; subtract
-; gradient
-; gradient-squared
-; laplacian
-
+  (is (partial-derivative p 1) #2q((2) (4)) :test #'polynomial=)
+                                        ; multiply polynomials
+  ;;(is (* p q) :test #'polynomial=)
+  ;(is (* p r) :test #'polynomial=)
+  ;(is (* q r) :test #'polynomial=)
+                                        ; multiply by scalar
+  (is (* q 3) #2q((3 6 9) (12 15 18) (21 24 27)) :test #'polynomial=)
+                                        ; add
+  ;(is (+ p r) :test #'polynomial=)
+                                        ; subtract
+  ;(is (- p r) :test #'polynomial=)
+                                        ; gradient
+                                        ; gradient-squared
+  ;(is (gradient-squared r) :test #'polynomial=)
+                                        ; laplacian
+  (is (laplacian q) #2q((20 16 18) (12 0 0) (18 0 0)) :test #'polynomial=))
 
 (finalize)
-
 
 
 (defvar *2-by-2* (magicl:make-complex-matrix 2 2 (list 1 2 3 4)))

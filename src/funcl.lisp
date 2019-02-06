@@ -48,3 +48,5 @@
   "Setfs the domain slot of function to be new-domain and returns function."
   (setf (domain function) new-domain)
   function)
+
+(defun point-evaluator (point) (lambda (func) (evaluate func point)))

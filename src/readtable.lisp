@@ -20,15 +20,19 @@
 (defmethod print-object ((object multivariate-polynomial) stream)
   (if *print-human-readable* 
       (with-slots (coefficients) object
-        (format stream "~{~a~^ + ~}"
-                (remove-if (lambda (str) (string= "" str))
-                           (multidimensional-loop
-                                (coefficients place)
-                                collect (format nil "~[~:;~,2f ~{~{~[~*~*~;~,2f~*~:;~,2f^~s~]~}~}~]" 
-                                                (if (zerop (apply #'aref coefficients place))
-                                                    0 1)
-                                                (apply #'aref coefficients place) 
-                                                (mapcar #'list place '(x y z w a b c d e f g h) place))))))
+        (format stream "~a"
+                (cl-ppcre:regex-replace-all 
+                 "\\+ -" 
+                 (format nil "~{~a~^ + ~}"
+                         (remove-if (lambda (str) (string= "" str))
+                                    (multidimensional-loop
+                                     (coefficients place)
+                                     collect (format nil "~[~:;~,5f~{~{~[~*~*~; ~,5f~*~:; ~,5f^~s~]~}~}~]" 
+                                                     (if (zerop (apply #'aref coefficients place))
+                                                         0 1)
+                                                     (apply #'aref coefficients place) 
+                                                     (mapcar #'list place '(x y z w a b c d e f g h) place)))))
+                 "- ")))
       (if (typep (coefficients object) 'sequence)
           (format stream "#Q(~{~s~^ ~})" (coerce (coefficients object) 'list))
           (format stream "~A" (substitute #\Q #\A (format nil "~s" (coefficients object)))))))

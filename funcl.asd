@@ -17,6 +17,7 @@
                "local-time"
                "cl-syntax"
                "cl-annot"
+               "hpc-tools"
                "bld-gen"
                "bld-ode"
                "eazy-gnuplot")
@@ -29,7 +30,9 @@
                  (:file "matrix-routines" :depends-on ("funcl"))
                  (:file "polynomial" :depends-on ("funcl" "sequence-utils"))
                  (:file "ode" :depends-on ("funcl"))
+                 (:file "numerics")
                  (:file "plot")
+                 (:file "components")
                  (:file "generics" :depends-on ("funcl"))
                  (:file "interpolation" :depends-on ("polynomial"))
                  (:file "readtable" :depends-on ("polynomial")))))

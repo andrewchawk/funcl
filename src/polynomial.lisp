@@ -131,15 +131,17 @@
   (array-map (lambda (coefficient) (* scalar coefficient)) c))
 
 (defun differentiate-multivariate-polynomial (coefficients index)
-  (let ((result (make-array (jump-place (array-dimensions coefficients) index -1)
-                            :initial-element 0)))
-    (multidimensional-loop 
-     (result place)
-     when (place-within-array-p (jump-place place index) coefficients)
-     do (setf (apply #'aref result place)
-              (* (1+ (nth index place))
-                 (apply #'aref coefficients (jump-place place index))))
-     finally (return result))))
+  (if (equal (array-dimensions coefficients) '(1))
+      #(0)
+      (let ((result (make-array (jump-place (array-dimensions coefficients) index -1)
+                                :initial-element 0)))
+        (multidimensional-loop 
+         (result place)
+         when (place-within-array-p (jump-place place index) coefficients)
+         do (setf (apply #'aref result place)
+                  (* (1+ (nth index place))
+                     (apply #'aref coefficients (jump-place place index))))
+         finally (return result)))))
 
 @export 
 (defun gradient-coefficients (coefficients)
