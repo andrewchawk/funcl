@@ -36,6 +36,7 @@
       ('compose (format nil "~d.~d" name-1 name-2)))))
 
 (defmethod name ((function number)) (format nil "~,3f" function))
+(defmethod name ((function magicl:matrix)) (format nil "~a" function))
 
 (defclass named-function (funcl-function)
   ((name :accessor name :initarg :name)))
@@ -88,7 +89,7 @@
                  :function-2 b
                  :range (range a)
                  :domain (domain a)
-                 :differentiator (lambda () (* a b))
+                 :differentiator (lambda () (* (differentiate a) b))
                  :lambda-function (lambda (arg) (* (evaluate a arg) b))))
 
 (bld-gen:defmeth2 * ((a number) (b funcl-function)) (* b a))
@@ -207,3 +208,32 @@
 
 (bld-gen:defmeth2 - ((a number) (b multivariate-polynomial))
   (- (constant a) b))
+
+
+(bld-gen:defmeth2 * ((a funcl-function) (b magicl:matrix))
+  (make-instance 'combination-function 
+                 :combination-operation '*
+                 :function-1 a
+                 :function-2 b
+                 :range (range a)
+                 :domain (domain a)
+                 :differentiator (lambda () (* (differentiate a) b))
+                 :lambda-function (lambda (arg) (* (evaluate a arg) b))))
+
+(bld-gen:defmeth2 * ((a magicl:matrix) (b funcl-function)) (* b a))
+
+
+(bld-gen:defmeth2 + ((a funcl-function) (b magicl:matrix))
+  (make-instance 'combination-function 
+                 :combination-operation '+ 
+                 :function-1 a
+                 :range (range a)
+                 :domain (domain a)
+                 :function-2 b
+                 :differentiator (lambda () (differentiate a))
+                 :lambda-function (lambda (arg) (+ (evaluate a arg) b))))
+
+(bld-gen:defmeth2 + ((a magicl:matrix) (b funcl-function)) (+ b a))
+
+(bld-gen:defmeth2 + ((a magicl:matrix) (b number)) (+ b (aref  (magicl::matrix-data a) 0)))
+(bld-gen:defmeth2 + ((a number) (b magicl:matrix)) (+ b a))
