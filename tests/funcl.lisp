@@ -58,7 +58,23 @@
                                         ; laplacian
   (is (laplacian q) #2q((20 16 18) (12 0 0) (18 0 0)) :test #'polynomial=))
 
-(finalize)
+                                        ; matrix-matrix, vector vector multiplication
+
+(let ((a (magicl:make-complex-matrix 2 2 (list 1 3 2 4)))
+      (b (magicl:make-complex-matrix 2 2 (list 5 7 6 8)))
+      (c (magicl:make-complex-matrix 2 1 (list 2 1)))
+      (d (magicl:make-complex-matrix 1 2 (list 3 2)))
+      (e (make-array '(2) :element-type 'double-float :initial-contents '(5.0d0 6.0d0)))
+      (f (make-array '(2) :element-type 'double-float :initial-contents '(7.0d0 8.0d0)))
+      (g (pack-matrix 2 1 funcl:*sin* funcl::*tan*))
+      (h (pack-matrix 2 1 funcl:*cos* (- funcl:*sin*))))
+;(format t "~a" (list a b c d e f g h))
+  (is (dot-product d f) 37.0d0 :test #'equalp)
+  (is (* a b) (magicl:make-complex-matrix 2 2 '(19 43 22 50)) :test #'matrix=)
+  (is (* a c) (magicl:make-complex-matrix 2 1 '(4.0d0 10.0d0)) :test #'matrix=)
+  (is (* b f) )
+
+  (finalize))
 
 
 (defvar *2-by-2* (magicl:make-complex-matrix 2 2 (list 1 2 3 4)))

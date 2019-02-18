@@ -34,11 +34,13 @@
 @export
 (defun evaluate-polynomial (coefficients arg)
   "Evaluates a polynomial at arg using Horner's method. coefficients must be of type vector arranged in order of increasing degree e.g. $$2x^2 + 4x + 1$$ is represented by #(1 4 2)."
-  (let ((n (1- (length coefficients))))
-    (loop with b = (aref coefficients n)
-       for i from (1- n) downto 0 
-       do (setf b (+ (aref coefficients i) (* b arg)))
-       finally (return b))))
+  (if (zerop (length coefficients))
+      0
+      (let ((n (1- (length coefficients))))
+        (loop with b = (aref coefficients n)
+              for i from (1- n) downto 0 
+              do (setf b (+ (aref coefficients i) (* b arg)))
+              finally (return b)))))
 
 @export
 (defun evaluate-multivariate-polynomial (coefficients arg)
@@ -73,7 +75,7 @@
                      :coefficients coefficients
                       :lambda-function (lambda (arg)
                                          (evaluate-multivariate-polynomial coefficients arg))
-                     :differentiator (lambda () (apply #'vector 
+                     :differentiator (lambda () (apply #'pack-vector
                                                        (loop for i from 0 below
                                                             (array-rank coefficients)
                                                           collecting
@@ -177,4 +179,3 @@
 (defun polynomial= (function-1 function-2)
   (apply #'all 
          (coerce (flatten-array (array-map #'= (coefficients function-1) (coefficients function-2))) 'list)))
-

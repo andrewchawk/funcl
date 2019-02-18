@@ -92,7 +92,7 @@
                       (eazy-gnuplot:plot
                        (lambda ()
                          (let* ((values (alexandria:iota granularity :step (/ (- end start) granularity) :start start))
-                                (function-values (lparallel:pmapcar lambda-function values)))
+                                (function-values (lparallel:pmapcar (alexandria:compose #'flatten-scalar lambda-function) values)))
                            (mapcar (lambda (i j) (format t "~&~,6f ~F" i j)) values function-values)))
                        :with '(:lines) :title (name function)))))
              (when (and (member :x11 terminal)

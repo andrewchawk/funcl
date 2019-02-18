@@ -8,9 +8,20 @@
     (magicl::make-matrix :rows n :cols m :data (coerce unrolled-result `(simple-array ,(array-element-type (magicl::matrix-data a))
                                                                                       (,(* n m)))))))
 
+@export
+(defun simple-array->magicl-matrix (b) (magicl:make-complex-matrix (length b) 1 (coerce b 'list)))
+
 (bld-gen:defmeth2 * ((a magicl:matrix) (b magicl:matrix)) (magicl:multiply-complex-matrices a b))
 (bld-gen:defmeth2 * ((a magicl:matrix) (b number)) (magicl:scale b a))
 (bld-gen:defmeth2 * ((a number) (b magicl:matrix)) (* b a))
+(bld-gen:defmeth2 * ((a magicl:matrix) (b simple-array))
+  (* a (simple-array->magicl-matrix b)))
+
+(bld-gen:defmeth2 * ((a funcl-function) (b magicl:matrix)) (* a (constant b)))
+(bld-gen:defmeth2 * ((a magicl:matrix) (b funcl-function)) (* (constant a) b))
+(bld-gen:defmeth2 * ((a funcl-function) (b simple-array)) (* a (constant (simple-array->magicl-matrix b))))
+(bld-gen:defmeth2 * ((a simple-array) (b funcl-function)) (* (constant (simple-array->magicl-matrix a)) b))
+
 
 (bld-gen:defmeth1 - ((a magicl:matrix)) (* -1 a))
 (bld-gen:defmeth2 - ((a magicl:matrix) (b magicl:matrix)) (+ a (- b)))
@@ -33,6 +44,7 @@
       ('* (format nil "~d * ~d" name-1 name-2))
       ('- (format nil "~d - ~d" name-1 name-2))
       ('/ (format nil "~d / ~d" name-1 name-2))
+      (#'dot-product (format nil "~d . ~d" name-1 name-2))
       ('compose (format nil "~d.~d" name-1 name-2)))))
 
 (defmethod name ((function number)) (format nil "~,3f" function))
@@ -135,27 +147,28 @@
 (defclass named-function (funcl-function) 
   ((name :accessor name :initarg :name)))
 
+@export
 (defvar *sin* (make-instance 'named-function
                              :domain 'scalar
                              :name "sin"
                              :range 'scalar
                              :lambda-function #'sin
                              :differentiator (lambda () *cos*)))
-
+@export
 (defvar *cos* (make-instance 'named-function
                              :domain 'scalar
                              :range 'scalar
                              :name "cos"
                              :lambda-function #'cos
                              :differentiator (lambda () (- *sin*))))
-
+@export
 (defvar *tan* (make-instance 'named-function
                              :domain 'scalar
                              :range 'scalar
                              :name "tan"
                              :lambda-function #'tan
                              :differentiator (lambda () (/ 1 (* *cos* *cos*)))))
-
+@export
 (defvar *exp* (make-instance 'named-function
                              :domain 'scalar
                              :range 'scalar

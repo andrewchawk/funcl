@@ -37,6 +37,8 @@
           (format stream "#Q(~{~s~^ ~})" (coerce (coefficients object) 'list))
           (format stream "~A" (substitute #\Q #\A (format nil "~s" (coefficients object)))))))
 
+(defmethod name ((multivariate-polynomial multivariate-polynomial))
+  (format nil "~a" multivariate-polynomial))
 (defsyntax syntax
   (:merge :standard)
   (:dispatch-macro-char #\# #\q #'|#q-reader|)

@@ -59,6 +59,21 @@
 (defmethod dot-product ((a simple-array) (b magicl:matrix)) (dot-product a (magicl::matrix-data b)))
 (defmethod dot-product ((a magicl:matrix) (b magicl:matrix)) (dot-product (magicl::matrix-data a)
                                                                           (magicl::matrix-data b)))
+(defmethod dot-product ((c funcl-function) (d funcl-function))
+  (make-instance 'combination-function :combination-operation #'dot-product
+                                       :function-1 c :function-2 d
+                                       :domain (domain c)
+                                       :range 'scalar
+                                       :differentiator (lambda () (+ (dot-product (differentiate c) d)
+                                                                     (dot-product c (differentiate d))))
+                                       :lambda-function (lambda (arg) (dot-product (evaluate c arg)
+                                                                                   (evaluate d arg)))))
+
+(defmethod dot-product ((c funcl-function) (d magicl:matrix)) (dot-product c (constant d)))
+(defmethod dot-product ((c magicl:matrix) (d funcl-function)) (dot-product (constant c) d))
+(defmethod dot-product ((c funcl-function) (d simple-array)) (dot-product c (constant d)))
+(defmethod dot-product ((c simple-array) (d funcl-function)) (dot-product (constant c) d))
+
 
 (defgeneric real-part (arg))
 (defmethod real-part ((arg number)) (realpart arg))
@@ -70,3 +85,10 @@
                  :lambda-function (lambda (time) (real-part (evaluate arg time)))
                  :range (range arg)
                  :domain (domain arg)))
+
+@export
+(defun flatten-scalar (scalar)
+  (cond
+    ((numberp scalar) (realpart scalar))
+    ((arrayp scalar) (realpart (aref scalar 0)))
+    ((typep scalar 'magicl:matrix) (realpart (aref (magicl::matrix-data scalar) 0)))))
