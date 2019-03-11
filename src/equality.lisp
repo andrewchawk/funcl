@@ -15,3 +15,7 @@
   (matrix= (magicl::matrix-data mat1) mat2))
 
 (defmethod matrix= ((mat1 magicl:matrix) (mat2 simple-array)) (matrix= mat2 mat1))
+
+@export
+(defun list= (list1 list2)
+  (equalp list1 list2))

@@ -92,3 +92,24 @@
     ((numberp scalar) (realpart scalar))
     ((arrayp scalar) (realpart (aref scalar 0)))
     ((typep scalar 'magicl:matrix) (realpart (aref (magicl::matrix-data scalar) 0)))))
+
+@export
+(defgeneric matrix-trace (arg))
+
+(defmethod matrix-trace ((arg number)) arg)
+(defmethod matrix-trace ((arg magicl:matrix))
+  (reduce #'+ (magicl:matrix-diagonal arg)))
+
+(defmethod matrix-trace ((arg simple-array))
+  (matrix-trace (simple-array->magicl-matrix arg)))
+
+@export
+(defun matrix-trace-function ()
+  (make-instance 'funcl-function
+                 :lambda-function (lambda (arg) (matrix-trace arg))
+                 :domain 'square-matrix
+                 :range 'scalar
+                 :differentiator (lambda () (error "not implemented yet"))))
+
+(defmethod matrix-trace ((arg funcl-function))
+  (compose (matrix-trace-function) arg))

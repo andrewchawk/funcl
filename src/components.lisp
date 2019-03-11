@@ -80,9 +80,8 @@
                                         (realpart (apply #'magicl:ref (evaluate parent-function arg) place))))))
 
 @export
+(defun laplacian (function) (matrix-trace (differentiate (differentiate function))))
+
+@export
 (defun hessian (function)
-  (let* ((raw-second-derivative (differentiate (differentiate function)))
-         (n (length (scalar-functions raw-second-derivative))))
-    (apply #'pack-matrix n n (loop for i from 0 below n appending
-                                 (loop for j from 0 below n collecting
-                                       (vector-component (vector-component raw-second-derivative j) i))))))
+  (simple-array->magicl-matrix (differentiate (differentiate function))))

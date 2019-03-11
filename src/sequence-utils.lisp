@@ -83,3 +83,9 @@
 
 @export
 (defun flatten-array (array) (make-array (array-total-size array) :displaced-to array))
+
+@export
+(defun one-shot-list (n position &key (one 1) (zero 0))
+  (let ((list (make-list n :initial-element zero)))
+    (setf (nth position list) one)
+    list))
