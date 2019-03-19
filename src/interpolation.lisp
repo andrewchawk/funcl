@@ -68,8 +68,7 @@
        (vector (floor (* dx (/ (- x x-min) x-length)))
                (floor (* dy (/ (- y y-min) y-length)))
                (floor (* dz (/ (- z z-min) z-length))))))
-   (lambda (arg)
-     (funcall piece-function arg))))
+   piece-function))
 
 ;; Chebyshev interpolation routines
 

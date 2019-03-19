@@ -58,10 +58,12 @@
                         (evaluate-multivariate-polynomial 
                          (make-array new-degrees
                                      :displaced-to coefficients
+                                     :element-type (array-element-type coefficients)
                                      :displaced-index-offset 
                                      (* i (reduce '* new-degrees)))
                          (make-array (1- number-of-variables)
                                      :displaced-to arg
+                                     :element-type (array-element-type arg)
                                      :displaced-index-offset 1))))
           (evaluate-polynomial new-coefficients lowest-arg)))))
 

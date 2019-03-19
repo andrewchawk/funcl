@@ -47,7 +47,7 @@
 @export
 (defgeneric complex-conjugate (arg))
 (defmethod complex-conjugate ((arg number)) (conjugate arg))
-(defmethod complex-conjugate ((arg simple-array)) (map 'vector 'conjugate arg))
+(defmethod complex-conjugate ((arg simple-array)) (map 'vector 'complex-conjugate arg))
 (defmethod complex-conjugate ((arg magicl:matrix)) (magicl:conjugate-entrywise arg))
 @export
 (defgeneric dot-product (a b))
