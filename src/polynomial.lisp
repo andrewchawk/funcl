@@ -181,3 +181,13 @@
 (defun polynomial= (function-1 function-2)
   (apply #'all 
          (coerce (flatten-array (array-map #'= (coefficients function-1) (coefficients function-2))) 'list)))
+
+(defun multihomogeneous (&rest scales)
+  "Returns a multivariate polynomial ax + by + ... + cz where the coefficients a,b,...,c are taken from scales."
+  (let ((coefficients (make-array (make-list (length scales) :initial-element 2))))
+    (multidimensional-loop (coefficients place)
+                           with variable = (1- (length scales))
+                           do (when (= 1 (reduce #'+ place))
+                                (setf (apply #'aref coefficients place) (nth variable scales))
+                                (decf variable))
+                           finally (return (make-multivariate-polynomial coefficients)))))

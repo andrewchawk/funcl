@@ -42,33 +42,43 @@
 (defclass piecewise-function (funcl-function)
   ((domain :initform '(vector 3))
    (range :initform 'scalar)
+   (reshaper :initarg :reshaper :initform (error "Need one of these"))
    (dispatcher :initarg :dispatcher :initform  (error "Need one of these"))
    (piece-function :initarg :piece-function :initform (error "Need one of these")))
   (:documentation "Interpolates a function over a grid."))
 
 @export
-(defun make-piecewise-function (dispatcher piece-function)
+(defun make-piecewise-function (dispatcher piece-function reshaper derivative-prefactor)
   (make-instance 'piecewise-function
                  :dispatcher dispatcher
+                 :reshaper reshaper
                  :piece-function piece-function
-                 :lambda-function (lambda (arg) (evaluate (funcall piece-function (funcall dispatcher arg))
-                                                          arg))
+                 :lambda-function (lambda (arg) (evaluate (funcall piece-function (funcall dispatcher arg)) (funcall reshaper arg)))
                  :differentiator (lambda () (make-piecewise-function
                                              dispatcher
-                                             (lambda (arg) (differentiate
-                                                            (funcall piece-function arg)))))))
+                                             (lambda (arg) (* (aref derivative-prefactor 0)) (differentiate
+                                                            (funcall piece-function arg)))
+                                             reshaper derivative-prefactor))))
 
 @export
 (defun make-grid-interpolator (piece-function x-min dx x-length y-min dy y-length z-min dz z-length)
   (make-piecewise-function 
    (lambda (vector)
-     (let ((x (aref vector 0))
+     (let ((x (aref vector 0)) ;; redesign this whole API! bug prone
            (y (aref vector 1))
            (z (aref vector 2)))
        (vector (floor (* dx (/ (- x x-min) x-length)))
                (floor (* dy (/ (- y y-min) y-length)))
                (floor (* dz (/ (- z z-min) z-length))))))
-   piece-function))
+   piece-function
+   (lambda (vector)
+     (let ((x (aref vector 0))
+           (y (aref vector 1))
+           (z (aref vector 2)))
+       (vector (* (/ dx x-length) (mod x (/ x-length dx)))
+               (* (/ dy y-length) (mod y (/ y-length dy)))
+               (* (/ dz z-length) (mod z (/ z-length dz))))))
+   (vector (/ x-length dx) (/ dy y-length) (/ dz z-length))))
 
 ;; Chebyshev interpolation routines
 
@@ -88,3 +98,39 @@
   "Returns a Chebyshev series $$\\Sigma^{N}_{i=1} a_i T_i(x) $$ where $$T_i(x)$$ are the Chebyshev polynomials of the first kind."
   (reduce #'+ (map 'vector #'* vector *chebyshev-polynomials*)))
 
+
+
+(defclass piecewise-function (funcl-function)
+  ((domain :initform '(vector 3))
+   (range :initform 'scalar)
+   ;(reshaper :initarg :reshaper :initform (error "Need one of these"))
+   ;'(dispatcher :initarg :dispatcher :initform  (error "Need one of these"))
+   (piece-function :initarg :piece-function :initform (error "Need one of these")))
+  (:documentation "Interpolates a function over a grid."))
+
+@export
+(defun make-piecewise-function (piece-function)
+  (make-instance 'piecewise-function
+                 :piece-function piece-function ; 
+                 :lambda-function (lambda (arg) (evaluate (funcall piece-function arg) arg))
+                 :differentiator (lambda () (make-piecewise-function
+                                             (lambda (arg) (differentiate (funcall piece-function arg)))))))
+
+
+
+@export
+(defun make-grid-interpolator (grid-function x-min dx x-length y-min dy y-length z-min dz z-length)
+  (let ((ijk (lambda (arg)
+               (vector (floor (* dx (/ (- (aref arg 0) x-min) x-length)))
+                       (floor (* dy (/ (- (aref arg 1) y-min) y-length)))
+                       (floor (* dz (/ (- (aref arg 2) z-min) z-length)))))))
+    (make-piecewise-function 
+     (lambda (arg)
+       (compose (funcall grid-function (funcall ijk arg))
+                (pack-vector
+                 (- #1=(multihomogeneous (/ dx x-length) 0 0)
+                    (floor-funcl #1#))
+                 (- #2=(multihomogeneous 0 (/ dy y-length) 0)
+                    (floor-funcl #2#))
+                 (- #3=(multihomogeneous 0 0 (/ dz z-length))
+                    (floor-funcl #3#))))))))

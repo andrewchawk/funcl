@@ -245,12 +245,17 @@
 (bld-gen:defmeth2 + ((a number) (b multivariate-polynomial))
   (+ (constant a) b))
 
-(bld-gen:defmeth2 - ((a multivariate-polynomial) (b number))
+(bld-gen:defmeth2 - ((a funcl-function) (b number))
   (- a (constant b)))
 
-(bld-gen:defmeth2 - ((a number) (b multivariate-polynomial))
+(bld-gen:defmeth2 - ((a number) (b funcl-function))
   (- (constant a) b))
 
+(bld-gen:defmeth2 - ((a simple-array) (b number))
+  (map 'vector (lambda (arg) (- arg b)) a))
+
+(bld-gen:defmeth2 - ((a number) (b simple-array))
+  (map 'vector (lambda (arg) (- a arg)) b))
 
 (bld-gen:defmeth2 * ((a funcl-function) (b magicl:matrix))
   (make-instance 'combination-function 
@@ -280,3 +285,14 @@
 (bld-gen:defmeth2 + ((a magicl:matrix) (b number)) (+ b (aref  (magicl::matrix-data a) 0)))
 (bld-gen:defmeth2 + ((a number) (b magicl:matrix)) (+ b a))
 
+@export ; shadow this function using bld later
+(defgeneric floor-funcl (x))
+
+(defmethod floor-funcl ((x number)) (floor x))
+(defmethod floor-funcl ((x simple-array)) (map 'vector #'floor x))
+(defmethod floor-funcl ((x funcl-function))
+  (make-instance 'funcl-function
+                 :differentiator (lambda () 0)
+                 :lambda-function (lambda (arg) (floor-funcl (evaluate x arg)))
+                 :domain (domain x)
+                 :range (range x)))
