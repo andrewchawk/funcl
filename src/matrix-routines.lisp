@@ -55,8 +55,30 @@
 (defmethod dot-product ((a number) (b number)) (* a b))
 (defmethod dot-product ((a simple-array) (b simple-array)) (reduce #'+ (map 'vector #'* a 
                                                                             (complex-conjugate b))))
-(defmethod dot-product ((a magicl:matrix) (b simple-array)) (dot-product (magicl::matrix-data a) b))
-(defmethod dot-product ((a simple-array) (b magicl:matrix)) (dot-product a (magicl::matrix-data b)))
+(defmethod dot-product ((a magicl:matrix) (b simple-array))
+  (trace)
+  (if (= (magicl::matrix-cols a) 1)
+      (dot-product (magicl::matrix-data a) b)
+      (let ((c (simple-array->magicl-matrix b))
+            )
+        ;(format t "a ~a b ~a ~%" a c)
+        (* a c)
+        ;(format t "done")
+        )))
+
+
+(defmethod dot-product ((a simple-array) (b magicl:matrix))
+  (trace)
+  ;(format t "me a ~a b ~a~%" a b)
+  (if (= (magicl:matrix-cols b) 1)
+      (dot-product a (magicl::matrix-data b))
+      (if (= (magicl:matrix-rows b) 1)
+          nil
+          (progn ;(format t "a ~a b ~a below~%" a b)
+                 (transpose (* (transpose (simple-array->magicl-matrix a)) b))
+                 ;(format t "done below")
+                 ))))
+
 (defmethod dot-product ((a magicl:matrix) (b magicl:matrix)) (dot-product (magicl::matrix-data a)
                                                                           (magicl::matrix-data b)))
 (defmethod dot-product ((c funcl-function) (d funcl-function))
@@ -113,3 +135,16 @@
 
 (defmethod matrix-trace ((arg funcl-function))
   (compose (matrix-trace-function) arg))
+
+@export
+(defun magicl-matrix->multidimensional-array (a)
+  (make-array `( ,(magicl:matrix-rows a)
+                 ,@(when (not (= 1 (magicl:matrix-cols a))) (magicl:matrix-cols a)))
+              :displaced-to (make-array (* (magicl:matrix-rows a) (magicl:matrix-cols a))
+                          :initial-contents (magicl::matrix-data a)
+                          )))
+
+@export
+(defun multiscale (scales &optional displacements)
+  "Returns a function (x,y,...,z)-> (ax+b,cx+d,...,ex+f.)"
+  (error "implement me"))

@@ -245,6 +245,12 @@
 (bld-gen:defmeth2 + ((a number) (b multivariate-polynomial))
   (+ (constant a) b))
 
+(bld-gen:defmeth2 + ((a number) (b simple-array))
+  (map 'vector (lambda (arg) (+ a arg)) b))
+
+(bld-gen:defmeth2 + ((a simple-array) (b number))
+  (+ b a))
+
 (bld-gen:defmeth2 - ((a funcl-function) (b number))
   (- a (constant b)))
 
@@ -282,8 +288,8 @@
 
 (bld-gen:defmeth2 + ((a magicl:matrix) (b funcl-function)) (+ b a))
 
-(bld-gen:defmeth2 + ((a magicl:matrix) (b number)) (+ b (aref  (magicl::matrix-data a) 0)))
-(bld-gen:defmeth2 + ((a number) (b magicl:matrix)) (+ b a))
+;(bld-gen:defmeth2 + ((a magicl:matrix) (b number)) (+ b (aref  (magicl::matrix-data a) 0)))
+;(bld-gen:defmeth2 + ((a number) (b magicl:matrix)) (+ b a))
 
 @export ; shadow this function using bld later
 (defgeneric floor-funcl (x))
@@ -292,7 +298,7 @@
 (defmethod floor-funcl ((x simple-array)) (map 'vector #'floor x))
 (defmethod floor-funcl ((x funcl-function))
   (make-instance 'funcl-function
-                 :differentiator (lambda () 0)
+                 :differentiator (lambda () (constant 0))
                  :lambda-function (lambda (arg) (floor-funcl (evaluate x arg)))
                  :domain (domain x)
                  :range (range x)))

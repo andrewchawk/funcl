@@ -181,7 +181,7 @@
 (defun polynomial= (function-1 function-2)
   (apply #'all 
          (coerce (flatten-array (array-map #'= (coefficients function-1) (coefficients function-2))) 'list)))
-
+@export
 (defun multihomogeneous (&rest scales)
   "Returns a multivariate polynomial ax + by + ... + cz where the coefficients a,b,...,c are taken from scales."
   (let ((coefficients (make-array (make-list (length scales) :initial-element 2))))
