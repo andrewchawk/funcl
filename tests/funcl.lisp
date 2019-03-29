@@ -72,7 +72,7 @@
   (is (dot-product d f) 37.0d0 :test #'equalp)
   (is (* a b) (magicl:make-complex-matrix 2 2 '(19 43 22 50)) :test #'matrix=)
   (is (* a c) (magicl:make-complex-matrix 2 1 '(4.0d0 10.0d0)) :test #'matrix=)
-  (is (* b f) )
+  ;(is (* b f) )
 
   (finalize))
 

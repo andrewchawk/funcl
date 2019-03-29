@@ -139,7 +139,7 @@
 @export
 (defun magicl-matrix->multidimensional-array (a)
   (make-array `( ,(magicl:matrix-rows a)
-                 ,@(when (not (= 1 (magicl:matrix-cols a))) (magicl:matrix-cols a)))
+                 ,@(when (not (= 1 (magicl:matrix-cols a))) (list (magicl:matrix-cols a))))
               :displaced-to (make-array (* (magicl:matrix-rows a) (magicl:matrix-cols a))
                           :initial-contents (magicl::matrix-data a)
                           )))

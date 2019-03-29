@@ -135,8 +135,10 @@
   (array-map (lambda (coefficient) (* scalar coefficient)) c))
 
 (defun differentiate-multivariate-polynomial (coefficients index)
-  (if (equal (array-dimensions coefficients) '(1))
-      #(0)
+ ; (format t "coefficients:~a, array-dimensions: ~a~%~%" coefficients (array-dimensions coefficients))
+  (if (or (equal (array-dimensions coefficients) '(1))
+          (zerop (reduce #'* (array-dimensions coefficients))))
+      (make-array (make-list (array-rank coefficients) :initial-element 0))
       (let ((result (make-array (jump-place (array-dimensions coefficients) index -1)
                                 :initial-element 0)))
         (multidimensional-loop 
