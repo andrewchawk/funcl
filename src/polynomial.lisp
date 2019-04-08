@@ -17,8 +17,8 @@
 (defun make-polynomial (coefficients)
   (make-instance 'polynomial-function
                  :coefficients coefficients
-                 :domain 'square-matrix
-                 :range 'square-matrix
+                 :domain nil
+                 :range nil
                  :differentiator (lambda ()
                                    (make-polynomial
                                     (differentiate-multivariate-polynomial coefficients 0)))
@@ -83,7 +83,9 @@
                                                           collecting
                                                             (make-multivariate-polynomial
                                                              (differentiate-multivariate-polynomial
-                                                              coefficients i))))))))
+                                                              coefficients i)))))
+                     :range nil
+                     :domain (list (array-rank coefficients)))))
 
 (defun ensure-multivariate-polynomial-coefficients-length-of (source target)
   "Returns a new array of coefficients that are that of source, padded with zeroes to be at least the size of target."

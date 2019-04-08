@@ -170,7 +170,10 @@
                  :function-2 b
                  :range (range a)
                  :domain (domain b)
-                 :differentiator (lambda () (dot-product (differentiate b) (compose (differentiate a) b)))
+                 :differentiator ;(lambda () (dot-product (differentiate b) (compose (differentiate a) b)))
+                 (lambda () (tensor-contract (tensor-product (differentiate b)
+                                                             (compose (differentiate a) b))
+                                             0 (+ 0 (length (range b)))))
                  :lambda-function (lambda (arg) (evaluate a (evaluate b arg)))))
 
 (defclass named-function (funcl-function) 
@@ -178,15 +181,15 @@
 
 @export
 (defvar *sin* (make-instance 'named-function
-                             :domain 'scalar
+                             :domain nil
                              :name "sin"
-                             :range 'scalar
+                             :range nil
                              :lambda-function #'sin
                              :differentiator (lambda () *cos*)))
 @export
 (defvar *cos* (make-instance 'named-function
-                             :domain 'scalar
-                             :range 'scalar
+                             :domain nil
+                             :range nil
                              :name "cos"
                              :lambda-function #'cos
                              :differentiator (lambda () (- *sin*))))
@@ -290,6 +293,8 @@
 
 ;(bld-gen:defmeth2 + ((a magicl:matrix) (b number)) (+ b (aref  (magicl::matrix-data a) 0)))
 ;(bld-gen:defmeth2 + ((a number) (b magicl:matrix)) (+ b a))
+
+(bld-gen:defmeth2 + ((a simple-array) (b simple-array)) (aops:each #'+ a b))
 
 @export ; shadow this function using bld later
 (defgeneric floor-funcl (x))

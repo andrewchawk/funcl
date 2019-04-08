@@ -49,52 +49,55 @@
 (defmethod complex-conjugate ((arg number)) (conjugate arg))
 (defmethod complex-conjugate ((arg simple-array)) (map 'vector 'complex-conjugate arg))
 (defmethod complex-conjugate ((arg magicl:matrix)) (magicl:conjugate-entrywise arg))
+
 @export
-(defgeneric dot-product (a b))
+(defun dot-product (a b) (tensor-contract (tensor-product a b) 0 1))
+;; @export
+;; (defgeneric dot-product (a b))
 
-(defmethod dot-product ((a number) (b number)) (* a b))
-(defmethod dot-product ((a simple-array) (b simple-array)) (reduce #'+ (map 'vector #'* a 
-                                                                            (complex-conjugate b))))
-(defmethod dot-product ((a magicl:matrix) (b simple-array))
-  (trace)
-  (if (= (magicl::matrix-cols a) 1)
-      (dot-product (magicl::matrix-data a) b)
-      (let ((c (simple-array->magicl-matrix b))
-            )
-        ;(format t "a ~a b ~a ~%" a c)
-        (* a c)
-        ;(format t "done")
-        )))
+;; (defmethod dot-product ((a number) (b number)) (* a b))
+;; (defmethod dot-product ((a simple-array) (b simple-array)) (reduce #'+ (map 'vector #'* a 
+;;                                                                             (complex-conjugate b))))
+;; (defmethod dot-product ((a magicl:matrix) (b simple-array))
+;;   (trace)
+;;   (if (= (magicl::matrix-cols a) 1)
+;;       (dot-product (magicl::matrix-data a) b)
+;;       (let ((c (simple-array->magicl-matrix b))
+;;             )
+;;         ;(format t "a ~a b ~a ~%" a c)
+;;         (* a c)
+;;         ;(format t "done")
+;;         )))
 
 
-(defmethod dot-product ((a simple-array) (b magicl:matrix))
-  (trace)
-  ;(format t "me a ~a b ~a~%" a b)
-  (if (= (magicl:matrix-cols b) 1)
-      (dot-product a (magicl::matrix-data b))
-      (if (= (magicl:matrix-rows b) 1)
-          nil
-          (progn ;(format t "a ~a b ~a below~%" a b)
-                 (transpose (* (transpose (simple-array->magicl-matrix a)) b))
-                 ;(format t "done below")
-                 ))))
+;; (defmethod dot-product ((a simple-array) (b magicl:matrix))
+;;   (trace)
+;;   ;(format t "me a ~a b ~a~%" a b)
+;;   (if (= (magicl:matrix-cols b) 1)
+;;       (dot-product a (magicl::matrix-data b))
+;;       (if (= (magicl:matrix-rows b) 1)
+;;           nil
+;;           (progn ;(format t "a ~a b ~a below~%" a b)
+;;                  (transpose (* (transpose (simple-array->magicl-matrix a)) b))
+;;                  ;(format t "done below")
+;;                  ))))
 
-(defmethod dot-product ((a magicl:matrix) (b magicl:matrix)) (dot-product (magicl::matrix-data a)
-                                                                          (magicl::matrix-data b)))
-(defmethod dot-product ((c funcl-function) (d funcl-function))
-  (make-instance 'combination-function :combination-operation #'dot-product
-                                       :function-1 c :function-2 d
-                                       :domain (domain c)
-                                       :range 'scalar
-                                       :differentiator (lambda () (+ (dot-product (differentiate c) d)
-                                                                     (dot-product c (differentiate d))))
-                                       :lambda-function (lambda (arg) (dot-product (evaluate c arg)
-                                                                                   (evaluate d arg)))))
+;; (defmethod dot-product ((a magicl:matrix) (b magicl:matrix)) (dot-product (magicl::matrix-data a)
+;;                                                                           (magicl::matrix-data b)))
+;; (defmethod dot-product ((c funcl-function) (d funcl-function))
+;;   (make-instance 'combination-function :combination-operation #'dot-product
+;;                                        :function-1 c :function-2 d
+;;                                        :domain (domain c)
+;;                                        :range 'scalar
+;;                                        :differentiator (lambda () (+ (dot-product (differentiate c) d)
+;;                                                                      (dot-product c (differentiate d))))
+;;                                        :lambda-function (lambda (arg) (dot-product (evaluate c arg)
+;;                                                                                    (evaluate d arg)))))
 
-(defmethod dot-product ((c funcl-function) (d magicl:matrix)) (dot-product c (constant d)))
-(defmethod dot-product ((c magicl:matrix) (d funcl-function)) (dot-product (constant c) d))
-(defmethod dot-product ((c funcl-function) (d simple-array)) (dot-product c (constant d)))
-(defmethod dot-product ((c simple-array) (d funcl-function)) (dot-product (constant c) d))
+;; (defmethod dot-product ((c funcl-function) (d magicl:matrix)) (dot-product c (constant d)))
+;; (defmethod dot-product ((c magicl:matrix) (d funcl-function)) (dot-product (constant c) d))
+;; (defmethod dot-product ((c funcl-function) (d simple-array)) (dot-product c (constant d)))
+;; (defmethod dot-product ((c simple-array) (d funcl-function)) (dot-product (constant c) d))
 
 
 (defgeneric real-part (arg))
