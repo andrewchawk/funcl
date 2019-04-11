@@ -66,8 +66,8 @@
    (function-2 :accessor function-2 :initarg :function-2)))
 
 (defmethod name ((function combination-function))
-  (let ((name-1 (name (function-1 function)))
-        (name-2 (name (function-2 function))))
+  (let ((name-1 (when (slot-boundp function 'function-1) (name (function-1 function))))
+        (name-2 (when (slot-boundp function 'function-2) (name (function-2 function)))))
     (alexandria:switch ((combination-operation function) :test #'eq)
       ('+ (format nil "~d + ~d" name-1 name-2))
       ('* (format nil "~d * ~d" name-1 name-2))
@@ -184,14 +184,18 @@
                              :domain nil
                              :name "sin"
                              :range nil
-                             :lambda-function #'sin
+                             :lambda-function (lambda (x)
+                                                (if (numberp x) (sin x)
+                                                    (sin (aref (aops:reshape x nil)))))
                              :differentiator (lambda () *cos*)))
 @export
 (defvar *cos* (make-instance 'named-function
                              :domain nil
                              :range nil
                              :name "cos"
-                             :lambda-function #'cos
+                             :lambda-function (lambda (x)
+                                                (if (numberp x) (cos x)
+                                                    (cos (aref (aops:reshape x nil)))))
                              :differentiator (lambda () (- *sin*))))
 @export
 (defvar *tan* (make-instance 'named-function
@@ -295,6 +299,7 @@
 ;(bld-gen:defmeth2 + ((a number) (b magicl:matrix)) (+ b a))
 
 (bld-gen:defmeth2 + ((a simple-array) (b simple-array)) (aops:each #'+ a b))
+(bld-gen:defmeth2 - ((a simple-array) (b simple-array)) (aops:each #'- a b))
 
 @export ; shadow this function using bld later
 (defgeneric floor-funcl (x))
@@ -303,7 +308,9 @@
 (defmethod floor-funcl ((x simple-array)) (map 'vector #'floor x))
 (defmethod floor-funcl ((x funcl-function))
   (make-instance 'funcl-function
-                 :differentiator (lambda () (constant 0))
+                 :differentiator (lambda () (constant (aops:zeros (append
+                                                                   (domain x)
+                                                                   (range x))) :domain (domain x)))
                  :lambda-function (lambda (arg) (floor-funcl (evaluate x arg)))
                  :domain (domain x)
                  :range (range x)))

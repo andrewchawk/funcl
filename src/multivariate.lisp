@@ -58,8 +58,8 @@
                  :differentiator (lambda () (+ (tensor-product (differentiate a) b)
                                                (tensor-permute 
                                                 (tensor-product a (differentiate b))
-                                                (perm-cycle (+ 1 (length (range a)) (length (range b)))
-                                                            0 (length (range a))))))
+                                                (differentiate-product-cycle (length (range a))
+                                                                             (length (range b))))))
                  :lambda-function (lambda (arg) (tensor-product (evaluate a arg)
                                                                 (evaluate b arg)))))
 
@@ -102,3 +102,10 @@
                  :lambda-function (lambda (arg) (tensor-contract (evaluate tensor arg) index-1 index-2))))
 
 (defmethod tensor-contract ((tensor number) (index-1 integer) (index-2 integer)) tensor)
+
+
+(defun differentiate-product-cycle (n m)
+  "Implementation taken from 'Product permutations'"
+  (apply #'perm:make-perm (append (list (+ n 1))
+                                  (alexandria:iota n :start 1)
+                                  (alexandria:iota m :start (+ n 2)))))

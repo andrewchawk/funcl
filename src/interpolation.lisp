@@ -109,12 +109,16 @@
   (:documentation "Interpolates a function over a grid."))
 
 @export
-(defun make-piecewise-function (piece-function)
+(defun make-piecewise-function (piece-function &key (domain '(3)) (range nil))
   (make-instance 'piecewise-function
-                 :piece-function piece-function ; 
+                 :piece-function piece-function ;
+                 :domain domain
+                 :range range
                  :lambda-function (lambda (arg) (evaluate (funcall piece-function arg) arg))
                  :differentiator (lambda () (make-piecewise-function
-                                             (lambda (arg) (differentiate (funcall piece-function arg)))))))
+                                             (lambda (arg) (differentiate (funcall piece-function arg))
+                                               )
+                                             :domain domain :range (append range domain)))))
 
 
 

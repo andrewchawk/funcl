@@ -136,8 +136,7 @@
                  :range 'scalar
                  :differentiator (lambda () (error "not implemented yet"))))
 
-(defmethod matrix-trace ((arg funcl-function))
-  (compose (matrix-trace-function) arg))
+(defun matrix-trace (matrix) (tensor-contract matrix 0 1))
 
 @export
 (defun magicl-matrix->multidimensional-array (a)

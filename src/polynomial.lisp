@@ -195,3 +195,14 @@
                                 (setf (apply #'aref coefficients place) (nth variable scales))
                                 (decf variable))
                            finally (return (make-multivariate-polynomial coefficients)))))
+
+(defclass constant-function (funcl-function)
+  ())
+
+(defun constant (a &key (domain nil))
+  (make-instance 'constant-function
+                 :lambda-function (lambda (arg) (declare (ignore arg)) a)
+                 :differentiator (lambda ()
+                                   (constant (aops:zeros (append domain (unless (numberp a) (array-dimensions a)) ) ) :domain domain))
+                 :range (unless (numberp a) (array-dimensions a)); (append domain (unless (numberp a) (array-dimensions a)) )
+                 :domain domain)) 
