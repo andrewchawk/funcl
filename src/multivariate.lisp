@@ -35,6 +35,7 @@
                  :differentiator
                  (lambda ()
                    (tensor-permute (differentiate tensor) (increment-permutation permutation)))))
+(defmethod tensor-permute ((tensor number) (permutation perm:perm)) tensor)
 
 @export
 (defgeneric tensor-product (a b))

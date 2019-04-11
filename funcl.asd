@@ -18,6 +18,8 @@
                "cl-syntax"
                "cl-annot"
                "hpc-tools"
+               "cl-permutation"
+               "array-operations"
                "bld-gen"
                "bld-ode"
                "eazy-gnuplot")
