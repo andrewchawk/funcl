@@ -10,14 +10,20 @@
 @export
 (defgeneric simple-array->magicl-matrix (b))
 
-(defmethod simple-array->magicl-matrix ((b simple-array)) 
-  (when (< 0 (length b))
-      (if (typep (aref b 0) 'simple-array)
-          (magicl:make-complex-matrix (length b) (length (aref b 0))
-                                      (loop for i from 0 below (length b)
-                                           appending (loop for j from 0 below (length (aref b 0))
-                                                        collecting (aref (aref b i) j))))
-          (magicl:make-complex-matrix (length b) 1 (coerce b 'list)))))
+(defmethod simple-array->magicl-matrix ((b simple-array))
+  (if (= 2 (array-rank b))
+      (magicl:make-complex-matrix
+       #1=(car (array-dimensions b)) #2=(cadr (array-dimensions b))
+       (loop for i from 0 below #1#
+             appending (loop for j from 0 below #2#
+                             collecting (aref b i j))))
+      (when (< 0 (length b))
+        (if (typep (aref b 0) 'simple-array)
+            (magicl:make-complex-matrix (length b) (length (aref b 0))
+                                        (loop for i from 0 below (length b)
+                                              appending (loop for j from 0 below (length (aref b 0))
+                                                              collecting (aref (aref b i) j))))
+            (magicl:make-complex-matrix (length b) 1 (coerce b 'list))))))
 
 (defmethod simple-array->magicl-matrix ((b funcl-function))
   (let ((lambda-function (slot-value b 'lambda-function)))
@@ -40,7 +46,13 @@
                               (loop for i from 0 below (length a)
                                    appending
                                    (loop for j from 0 below (length b)
-                                        collecting (* (aref a i) (aref b j))))))
+                                         collecting (* (aref a i) (aref b j))))))
+
+(bld-gen:defmeth2 * ((a simple-array) (b number)) (* b a))
+(bld-gen:defmeth2 * ((a number) (b simple-array))
+  (if (array-dimensions b)
+      (aops:each (lambda (arg) (* a arg)) b)
+      (* a (aref b))))
 
 (bld-gen:defmeth2 - ((a simple-array) (b magicl:matrix))
   (- (simple-array->magicl-matrix a) b))
@@ -314,3 +326,9 @@
                  :lambda-function (lambda (arg) (floor-funcl (evaluate x arg)))
                  :domain (domain x)
                  :range (range x)))
+
+@export
+(defgeneric eig (matrix))
+
+(defmethod eig ((matrix magicl:matrix)) (magicl:eig matrix))
+(defmethod eig ((matrix simple-array)) (magicl:eig (simple-array->magicl-matrix matrix)))

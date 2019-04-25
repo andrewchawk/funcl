@@ -149,4 +149,9 @@
 @export
 (defun multiscale (scales &optional displacements)
   "Returns a function (x,y,...,z)-> (ax+b,cx+d,...,ex+f.)"
-  (error "implement me"))
+  (apply #'pack-vector
+         (mapcar (lambda (scale displacement new-shape)
+                   (make-multivariate-polynomial (aops:reshape (vector scale displacement) new-shape)) )
+                 scales displacements (loop for i from 0 below (length scales) collecting
+                                            (loop for j from 0 below (length scales) collecting
+                                                  (if (= i j) 2 1))))))
