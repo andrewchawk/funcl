@@ -98,8 +98,6 @@
   "Returns a Chebyshev series $$\\Sigma^{N}_{i=1} a_i T_i(x) $$ where $$T_i(x)$$ are the Chebyshev polynomials of the first kind."
   (reduce #'+ (map 'vector #'* vector *chebyshev-polynomials*)))
 
-
-
 (defclass piecewise-function (funcl-function)
   ((domain :initform '(vector 3))
    (range :initform 'scalar)
@@ -138,3 +136,49 @@
                     (floor-funcl #2#))
                  (- #3=(multihomogeneous 0 0 (/ dz z-length))
                     (floor-funcl #3#))))))))
+
+
+
+(defun matrix-rank (matrix &key (epsilon 1e-6))
+  (count 0 (cl-num-utils:diagonal-matrix-elements
+            (lla:svd-d (lla:svd matrix)))
+         :test (lambda (x y) (> (abs (- x y)) epsilon))))
+
+(defun matrix-nullity (matrix &key (epsilon 1e-6)) ; rank-nullity theorem
+  (- (cadr (array-dimensions matrix)) (matrix-rank matrix :epsilon epsilon)))
+
+(defun flatten-coefficient-vector (coefficients)
+  (aops:displace coefficients (reduce #'* (array-dimensions coefficients))))
+
+(defun roll-coefficient-vector (coefficients &key (rank 3))
+  (aops:displace coefficients (make-list rank :initial-element (round (expt (array-dimension coefficients 0) (/ rank))))))
+
+(defun polynomial-basis-vectors (&key (m 4) (n 3))
+  (map 'vector (lambda (i)
+                 (make-multivariate-polynomial
+                  (roll-coefficient-vector
+                   (cl-irie::one-shot i :n (expt m n))
+                   :rank n)))
+       (alexandria:iota (expt m n))))
+
+(defun evaluator (point)
+  (lambda (func)
+    (evaluate func point)))
+
+(defun polynomial-laplacian (polynomial)
+  (reduce #'+ (loop for i from 0 below (array-rank (coefficients polynomial))
+                    collecting (vector-component (differentiate (vector-component (differentiate polynomial) i)) i))))
+
+(defun polynomial-laplacian-basis-matrix (&key (m 4) (n 3))
+  (aops:combine
+   (map 'vector (lambda (poly)
+                  (flatten-coefficient-vector 
+                   (coefficients
+                    (polynomial-laplacian poly))))
+        (polynomial-basis-vectors :m m :n n))))
+
+(defun solve-underdetermined-system (a b)
+  "Solves the system Ax=b such that |x| is minimised. Taken from Jim Lambers: Minimum Norm Solutions of Underdetermined Systems USM."
+  (let* ((a-t (aops:permute '(1 0) a))
+         (w (lla:solve (lla:mm a a-t) b)))
+    (lla:mm a-t w)))
