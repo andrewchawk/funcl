@@ -27,7 +27,7 @@
                  :lambda-function (lambda (matrix) (magicl:inv matrix))))
 
 @export
-(defvar *identity*
+(setf *identity*
   (make-instance 'funcl-function 
                  :domain 'square-matrix
                  :range 'square-matrix 
@@ -44,6 +44,12 @@
                  :lambda-function (lambda (arg) (transpose (evaluate matrix arg)))
                  :differentiator (lambda () (transpose (differentiate matrix)))))
 (defmethod transpose ((matrix number)) matrix)
+(defmethod transpose ((matrix array))
+  (make-array (reverse (array-dimensions matrix))
+              :initial-contents
+              (loop for i from 0 below (array-dimension matrix 1) collecting
+                    (loop for j from 0 below (array-dimension matrix 0) collecting
+                          (aref matrix j i)))))
 @export
 (defgeneric complex-conjugate (arg))
 (defmethod complex-conjugate ((arg number)) (conjugate arg))
@@ -110,12 +116,20 @@
                  :lambda-function (lambda (time) (real-part (evaluate arg time)))
                  :range (range arg)
                  :domain (domain arg)))
+(defmethod real-part ((arg array))
+  (aops:each #'realpart arg))
+
+(defgeneric imag-part (arg))
+(defmethod imag-part ((arg array))
+  (aops:each #'imagpart arg))
+(defmethod imag-part ((arg magicl:matrix))
+  (* 1/2 (- arg (magicl:conjugate-entrywise arg))))
 
 @export
 (defun flatten-scalar (scalar)
   (cond
     ((numberp scalar) (realpart scalar))
-    ((arrayp scalar) (realpart (aref scalar 0)))
+    ((arrayp scalar) (realpart (apply #'aref scalar (make-list (array-rank scalar) :initial-element 0))))
     ((typep scalar 'magicl:matrix) (realpart (aref (magicl::matrix-data scalar) 0)))))
 
 @export
@@ -155,3 +169,25 @@
                  scales displacements (loop for i from 0 below (length scales) collecting
                                             (loop for j from 0 below (length scales) collecting
                                                   (if (= i j) 2 1))))))
+
+@export
+(defgeneric norm (matrix)) ;; Infinity norm of a matrix.
+
+(defmethod norm ((matrix magicl:matrix))
+  (norm (magicl-matrix->multidimensional-array matrix)))
+
+(defmethod norm ((matrix array))
+  (multiple-value-bind (index value)
+      (aops:argmax (aops:each #'abs matrix))
+    (declare (ignore value))
+    value))
+
+(defclass norm-function (funcl-function)
+  ())
+
+(defmethod norm ((matrix funcl-function))
+  (make-instance 'norm-function
+                 :range 'scalar
+                 :domain 'square-matrix
+                 :differentiator (lambda () (error "not done yet"))
+                 :lambda-function (lambda (arg) (norm (evaluate matrix arg)))))

@@ -14,7 +14,8 @@
                  :domain 'square-matrix
                  :differentiator differentiator
                  :lambda-function (lambda (arg) 
-                                    (let ((result (cadar (last (bld-ode:rka ode-lambda t0 arg initial-state)))))
+                                    (let ((result (cadar (last (bld-ode:rka ode-lambda t0 arg initial-state
+                                                                            :tol 1.0d-10)))))
                                       result))))
 
 @export

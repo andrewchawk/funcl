@@ -24,17 +24,21 @@
 (defgeneric tensor-permute (tensor permutation))
 
 (defmethod tensor-permute ((tensor simple-array) (permutation perm:perm))
-  (aops:permute (mapcar #'1- (perm:perm-to-list permutation)) tensor))
+  (if (= 1 (cl-permutation:perm-size permutation))
+      tensor
+      (aops:permute (mapcar #'1- (perm:perm-to-list permutation)) tensor)))
 
 (defmethod tensor-permute ((tensor funcl-function) (permutation perm:perm))
   (make-instance 'combination-function
                  :function-1 tensor
-                 :range (perm:permute permutation (range tensor))
+                 :range (when (range tensor) (perm:permute permutation (range tensor)))
                  :domain (domain tensor)
+                 :combination-operation :permute
                  :lambda-function (lambda (arg) (tensor-permute (evaluate tensor arg) permutation))
                  :differentiator
                  (lambda ()
                    (tensor-permute (differentiate tensor) (increment-permutation permutation)))))
+
 (defmethod tensor-permute ((tensor number) (permutation perm:perm)) tensor)
 
 @export
@@ -79,17 +83,20 @@
 (defmethod tensor-contract ((tensor simple-array) (index-1 integer) (index-2 integer))
   (let* ((dimensions (array-dimensions tensor))
          (new-dimensions (tensor-contract-dimensions tensor index-1 index-2)))
-    (assert (= (nth index-1 dimensions) (nth index-2 dimensions)))
-    (aops:generate (lambda (subscript)
-                     (loop for i from 0 below (nth index-1 dimensions)
-                           summing (apply #'aref tensor
-                                          (append (subseq subscript 0 (min index-1 index-2))
-                                                  (list i)
-                                                  (subseq subscript (min index-1 index-2)
-                                                          (1- (max index-1 index-2)))
-                                                  (list i)
-                                                  (subseq subscript (1- (max index-1 index-2)))))))
-                   new-dimensions :subscripts)))
+    (if dimensions
+        (progn
+          (assert (= (nth index-1 dimensions) (nth index-2 dimensions)))
+          (aops:generate (lambda (subscript)
+                           (loop for i from 0 below (nth index-1 dimensions)
+                                 summing (apply #'aref tensor
+                                                (append (subseq subscript 0 (min index-1 index-2))
+                                                        (list i)
+                                                        (subseq subscript (min index-1 index-2)
+                                                                (1- (max index-1 index-2)))
+                                                        (list i)
+                                                        (subseq subscript (1- (max index-1 index-2)))))))
+                         new-dimensions :subscripts))
+        tensor)))
 
 (defmethod tensor-contract ((tensor funcl-function) (index-1 integer) (index-2 integer))
   (make-instance 'combination-function

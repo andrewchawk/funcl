@@ -10,7 +10,7 @@
 @export
 (defgeneric simple-array->magicl-matrix (b))
 
-(defmethod simple-array->magicl-matrix ((b simple-array))
+(defmethod simple-array->magicl-matrix ((b array))
   (if (= 2 (array-rank b))
       (magicl:make-complex-matrix
        #1=(car (array-dimensions b)) #2=(cadr (array-dimensions b))
@@ -34,41 +34,66 @@
 (bld-gen:defmeth2 * ((a magicl:matrix) (b magicl:matrix)) (magicl:multiply-complex-matrices a b))
 (bld-gen:defmeth2 * ((a magicl:matrix) (b number)) (magicl:scale b a))
 (bld-gen:defmeth2 * ((a number) (b magicl:matrix)) (* b a))
-(bld-gen:defmeth2 * ((a magicl:matrix) (b simple-array))
+(bld-gen:defmeth2 * ((a magicl:matrix) (b array))
   (* a (simple-array->magicl-matrix b)))
+
+(bld-gen:defmeth2 * ((a array) (b magicl:matrix))
+  (* (simple-array->magicl-matrix a) b))
 
 (bld-gen:defmeth2 * ((a funcl-function) (b magicl:matrix)) (* a (constant b)))
 (bld-gen:defmeth2 * ((a magicl:matrix) (b funcl-function)) (* (constant a) b))
-(bld-gen:defmeth2 * ((a funcl-function) (b simple-array)) (* a (constant (simple-array->magicl-matrix b))))
+(bld-gen:defmeth2 * ((a funcl-function) (b simple-array)) (* a (constant b)))
 (bld-gen:defmeth2 * ((a simple-array) (b funcl-function)) (* (constant (simple-array->magicl-matrix a)) b))
-(bld-gen:defmeth2 * ((a simple-array) (b simple-array))
-  (magicl:make-complex-matrix (length a) (length b)
-                              (loop for i from 0 below (length a)
-                                   appending
-                                   (loop for j from 0 below (length b)
-                                         collecting (* (aref a i) (aref b j))))))
 
-(bld-gen:defmeth2 * ((a simple-array) (b number)) (* b a))
-(bld-gen:defmeth2 * ((a number) (b simple-array))
+
+(bld-gen:defmeth2 + ((a funcl-function) (b simple-array)) (+ a (constant b)))
+(bld-gen:defmeth2 + ((a simple-array) (b funcl-function)) (+ b (constant a)))
+;; (bld-gen:defmeth2 * ((a simple-array) (b simple-array))
+;;   (if (array-dimensions a)
+;;       (magicl:make-complex-matrix (array-0 a) (length b)
+;;                                   (loop for i from 0 below (length a)
+;;                                         appending
+;;                                         (loop for j from 0 below (length b)
+;;                                               collecting (* (aref a i) (aref b j)))))
+;;       (* (aref a) b)))
+
+(bld-gen:defmeth2 * ((a simple-array) (b simple-array))
+  (if (array-dimensions a)
+      (if (array-dimensions b)
+          (lla:mm a b)
+          (* a (aref b)))
+      (* (aref a) b)))
+
+(bld-gen:defmeth2 * ((a array) (b number)) (* b a))
+(bld-gen:defmeth2 * ((a number) (b array))
   (if (array-dimensions b)
       (aops:each (lambda (arg) (* a arg)) b)
       (* a (aref b))))
 
-(bld-gen:defmeth2 - ((a simple-array) (b magicl:matrix))
+(bld-gen:defmeth2 - ((a array) (b magicl:matrix))
   (- (simple-array->magicl-matrix a) b))
 
-(bld-gen:defmeth2 + ((a simple-array) (b magicl:matrix))
+(bld-gen:defmeth2 - ((a magicl:matrix) (b array))
+  (- a (simple-array->magicl-matrix b)))
+
+(bld-gen:defmeth2 + ((a array) (b magicl:matrix))
   (+ (simple-array->magicl-matrix a) b))
+
+(bld-gen:defmeth2 + ((a magicl:matrix) (b array))
+  (+ b a))
 
 
 (bld-gen:defmeth1 - ((a magicl:matrix)) (* -1 a))
+(bld-gen:defmeth1 - ((a array)) (aops:each #'- a))
 (bld-gen:defmeth2 - ((a magicl:matrix) (b magicl:matrix)) (+ a (- b)))
 (bld-gen:defmeth1 / ((a magicl:matrix)) (magicl:inv a))
+(bld-gen:defmeth1 / ((a array)) (lla:invert a))
 (bld-gen:defmeth2 / ((a simple-array) (b number)) (* a (/ b)))
-
+(bld-gen:defmeth2 / ((a number) (b simple-array)) (* a (/ b)))
 (bld-gen:defmeth2 / ((a magicl:matrix) (b number)) (* a (/ b)))
 
 (defmethod bld-ode:norminfx ((a magicl:matrix)) (bld-ode:norminfx (magicl::matrix-data a)))
+(defmethod bld-ode:norminfx ((a array)) (bld-ode:norminfx (aops:flatten a)))
 
 (defmethod expt ((a magicl:matrix) (b fixnum)) (magicl:exptm a b))
 
@@ -158,6 +183,9 @@
                                                   (* a (differentiate b))) 
                                                (* b b)))
                  :lambda-function (lambda (arg) (/ (evaluate a arg) (evaluate b arg)))))
+
+(bld-gen:defmeth2 / ((a number) (b magicl:matrix))
+  (* a (/ b)))
 
 (bld-gen:defmeth2 / ((a number) (b funcl-function))
   (make-instance 'combination-function 
@@ -263,9 +291,18 @@
 
 (bld-gen:defmeth2 + ((a number) (b multivariate-polynomial))
   (+ (constant a) b))
+(defmethod identity-matrix-like ((matrix magicl:matrix)) 
+  (identity-matrix (magicl:matrix-cols matrix)))
+
+(defmethod identity-matrix-like ((matrix array))
+  (identity-matrix (array-dimension matrix 0)))
 
 (bld-gen:defmeth2 + ((a number) (b simple-array))
-  (map 'vector (lambda (arg) (+ a arg)) b))
+  (if (array-dimensions b)
+      (if (= 1 (length (array-dimensions b)))
+          (map 'vector (lambda (arg) (+ a arg)) b)
+          (+ b (* a (identity-matrix-like b))))
+      (+ a (aref b))))
 
 (bld-gen:defmeth2 + ((a simple-array) (b number))
   (+ b a))
@@ -277,7 +314,9 @@
   (- (constant a) b))
 
 (bld-gen:defmeth2 - ((a simple-array) (b number))
-  (map 'vector (lambda (arg) (- arg b)) a))
+  (if (array-dimensions a)
+      (map 'vector (lambda (arg) (- arg b)) a)
+      (- (aref a) b)))
 
 (bld-gen:defmeth2 - ((a number) (b simple-array))
   (map 'vector (lambda (arg) (- a arg)) b))
@@ -310,8 +349,10 @@
 ;(bld-gen:defmeth2 + ((a magicl:matrix) (b number)) (+ b (aref  (magicl::matrix-data a) 0)))
 ;(bld-gen:defmeth2 + ((a number) (b magicl:matrix)) (+ b a))
 
-(bld-gen:defmeth2 + ((a simple-array) (b simple-array)) (aops:each #'+ a b))
-(bld-gen:defmeth2 - ((a simple-array) (b simple-array)) (aops:each #'- a b))
+(bld-gen:defmeth2 + ((a array) (b array))
+  (aops:each #'+ a b))
+
+(bld-gen:defmeth2 - ((a array) (b array)) (aops:each #'- a b))
 
 @export ; shadow this function using bld later
 (defgeneric floor-funcl (x))
@@ -332,3 +373,38 @@
 
 (defmethod eig ((matrix magicl:matrix)) (magicl:eig matrix))
 (defmethod eig ((matrix simple-array)) (magicl:eig (simple-array->magicl-matrix matrix)))
+
+(defmethod bld-gen:sqrt ((function funcl-function))
+  (make-instance 'funcl-function
+                 :lambda-function (lambda (arg) (sqrt (evaluate function arg)))
+                 :differentiator (lambda () (* 0.5 (differentiate function)
+                                               (/ (sqrt function))))
+                 :domain (domain function)
+                 :range (range function)))
+
+(defmethod bld-gen:sqrt ((array array))
+  (unless (array-dimensions array)
+    (sqrt (aref array))))
+
+(defmethod bld-gen:expt ((function funcl-function) exponent)
+  (make-instance 'funcl-function
+                 :lambda-function (lambda (arg) (expt (flatten-scalar (evaluate function arg)) exponent))
+                 :differentiator (lambda () (* exponent (differentiate function) (expt function (- exponent 1))))
+                 :domain (domain function)
+                 :range (range function)))
+
+(defmethod bld-gen:expt ((array array) exponent)
+  (unless (array-dimensions array)
+    (expt (aref array) exponent)))
+
+(bld-gen:defmeth2 max ((array array) (array2 array))
+  (max (aref array) (aref array2)))
+
+(bld-gen:defmeth2 max ((array number) (array2 array))
+  (max array (aref array2)))
+
+(bld-gen:defmeth2 max ((array array) (array2 number))
+  (max (aref array) array2))
+
+(bld-gen:defmeth2 min ((array array) (array2 array))
+  (min (aref array) (aref array2)))

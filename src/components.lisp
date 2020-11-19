@@ -71,13 +71,14 @@
   (make-instance 'packed-matrix
                  :domain 'square-matrix
                  :range (when scalar-functions (range (first scalar-functions)))
-                 :differentiator (lambda () (apply #'pack-matrix n m scalar-functions))
+                 :differentiator (lambda () (apply #'pack-matrix n m (mapcar #'differentiate scalar-functions)))
                  :scalar-functions scalar-functions
                  :n n :m m
                  :lambda-function (lambda (arg) (magicl:make-complex-matrix n m 
-                                                                            (mapcar
-                                                                             (point-evaluator arg)
-                                                                             scalar-functions)))))
+                                                                            (mapcar #'flatten-scalar
+                                                                                    (mapcar
+                                                                                     (point-evaluator arg)
+                                                                                     scalar-functions))))))
 
 @export
 (defun matrix-component (parent-function place)

@@ -21,7 +21,10 @@
   "Solves the tridiagonal system Rx=y by pivoting."
   (error "Not implemented yet"))
 
-(defun solve-linear-system (a b)
+@export
+(defgeneric solve-linear-system (a b))
+
+(defmethod solve-linear-system ((a magicl:matrix) (b t))
   "Solves the linear system Ax=b via QR decomposition."
   (multiple-value-bind (q r)
       (magicl:qr a)
@@ -157,8 +160,8 @@
   (map 'vector (lambda (i)
                  (make-multivariate-polynomial
                   (roll-coefficient-vector
-                   (cl-irie::one-shot i :n (expt m n))
-                   :rank n)))
+                   #(0); (cl-irie::one-shot i :n (expt m n)) :rank n
+                   )))
        (alexandria:iota (expt m n))))
 
 (defun evaluator (point)

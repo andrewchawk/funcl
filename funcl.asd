@@ -19,6 +19,7 @@
                "cl-annot"
                "hpc-tools"
                "cl-permutation"
+               "lla"
                "array-operations"
                "bld-gen"
                "bld-ode"
@@ -37,6 +38,8 @@
                  (:file "plot")
                  (:file "components")
                  (:file "equality")
+                 (:file "linear")
+                 (:file "matrix-functions")
                  (:file "generics" :depends-on ("funcl"))
                  (:file "interpolation" :depends-on ("polynomial"))
                  (:file "readtable" :depends-on ("polynomial")))))
