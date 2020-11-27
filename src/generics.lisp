@@ -89,7 +89,10 @@
 (bld-gen:defmeth1 / ((a magicl:matrix)) (magicl:inv a))
 (bld-gen:defmeth1 / ((a array)) (lla:invert a))
 (bld-gen:defmeth2 / ((a simple-array) (b number)) (* a (/ b)))
-(bld-gen:defmeth2 / ((a number) (b simple-array)) (* a (/ b)))
+(bld-gen:defmeth2 / ((a number) (b simple-array))
+  (if (array-dimensions b)
+      (* a (/ b))
+      (/ a (aref b))))
 (bld-gen:defmeth2 / ((a magicl:matrix) (b number)) (* a (/ b)))
 
 (defmethod bld-ode:norminfx ((a magicl:matrix)) (bld-ode:norminfx (magicl::matrix-data a)))

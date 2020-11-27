@@ -28,6 +28,31 @@
 (defun numeric-max (function &rest keys)
   (apply #'numeric-predicate #'max function keys))
 
+;; local gradient ascent on granularity points m times
+;; (defvar alpha 3)
+;; (defun numeric-max (function &key granularity end (m 5)) ;; gradient descent on one over the function.
+;;   (format t "~a~%" alpha)
+;;   (let ((delta (/ end 1000))
+;;         (current-max most-positive-double-float)
+;;         (function (/ function)))
+;;     (let ((points (alexandria:iota (+ 1 granularity) :start 0 :step (/ end granularity))))
+;;       (flet ((gradient-ascent-step (x)
+;;                (+ x (* alpha (/ delta) (- (evaluate function (- x delta))
+;;                                           (evaluate function (+ x delta))))))
+;;              (out-of-bounds-p (x) (or (< x 0) (> x end))))
+;;         (loop repeat m do  
+;;               (progn
+;;                 ;(break)
+;;                 (if (zerop (length points)) (return-from numeric-max current-max))
+;;                 (setf
+;;                  ;; Set the current maximum
+;;                  current-max (min current-max (reduce 'min (lparallel:pmap 'vector (lambda-function function) points)))
+;;                  ;; Do an update step
+;;                  points (lparallel:pmap 'vector #'gradient-ascent-step points)
+;;                  ;; Remove points that are out of bounds
+;;                  points (remove-if #'out-of-bounds-p points))))
+;;         (/ current-max)))))
+
 @export
 (defun numeric-within-p (function min max &rest keys)
   (and (> (apply #'numeric-min function keys) min) 
