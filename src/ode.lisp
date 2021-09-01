@@ -7,7 +7,7 @@
    (ode-lambda :accessor ode-lambda :initarg :ode-lambda)))
 
 @export
-(defun integrate-first-order-ode-system (initial-state ode-lambda &key (t0 0) (differentiator (lambda () (error "Not implemented yet"))))
+(defun integrate-first-order-ode-system (initial-state ode-lambda &key (t0 0) (differentiator (lambda () (error "Not implemented yet"))) (tol 1.0d-10))
   (make-instance 'ode-solution
                  :t0 t0
                  :ode-lambda ode-lambda
@@ -15,7 +15,7 @@
                  :differentiator differentiator
                  :lambda-function (lambda (arg) 
                                     (let ((result (cadar (last (bld-ode:rka ode-lambda t0 arg initial-state
-                                                                            :tol 1.0d-10)))))
+                                                                            :tol tol)))))
                                       result))))
 
 @export

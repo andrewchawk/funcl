@@ -43,7 +43,7 @@
 (bld-gen:defmeth2 * ((a funcl-function) (b magicl:matrix)) (* a (constant b)))
 (bld-gen:defmeth2 * ((a magicl:matrix) (b funcl-function)) (* (constant a) b))
 (bld-gen:defmeth2 * ((a funcl-function) (b simple-array)) (* a (constant b)))
-(bld-gen:defmeth2 * ((a simple-array) (b funcl-function)) (* (constant (simple-array->magicl-matrix a)) b))
+(bld-gen:defmeth2 * ((a simple-array) (b funcl-function)) (* (constant a) b))
 
 
 (bld-gen:defmeth2 + ((a funcl-function) (b simple-array)) (+ a (constant b)))
@@ -57,7 +57,7 @@
 ;;                                               collecting (* (aref a i) (aref b j)))))
 ;;       (* (aref a) b)))
 
-(bld-gen:defmeth2 * ((a simple-array) (b simple-array))
+(bld-gen:defmeth2 * ((a array) (b array))
   (if (array-dimensions a)
       (if (array-dimensions b)
           (lla:mm a b)
@@ -82,6 +82,12 @@
 (bld-gen:defmeth2 + ((a magicl:matrix) (b array))
   (+ b a))
 
+(bld-gen:defmeth2 - ((a funcl-function) (b array))
+  (+ a (- b)))
+
+(defmethod evaluate ((function array) arg)
+  (declare (ignore arg))
+  function)
 
 (bld-gen:defmeth1 - ((a magicl:matrix)) (* -1 a))
 (bld-gen:defmeth1 - ((a array)) (aops:each #'- a))
@@ -182,13 +188,20 @@
                  :function-2 b
                  :range (range a)
                  :domain (domain a)
-                 :differentiator (lambda () (/ (- (* (differentiate a) b) 
-                                                  (* a (differentiate b))) 
-                                               (* b b)))
+                 :differentiator (lambda () ;; (/ (- (* (differentiate a) b) 
+                                            ;;       (* a (differentiate b))) 
+                                   ;;    (* b b))
+                                   (- (* (differentiate a) (/ b))
+                                      (* a (/ b) (differentiate b) (/ b)))
+                                   )
                  :lambda-function (lambda (arg) (/ (evaluate a arg) (evaluate b arg)))))
 
 (bld-gen:defmeth2 / ((a number) (b magicl:matrix))
   (* a (/ b)))
+
+(bld-gen:defmeth2 / ((a number) (b array))
+  (* a (/ b)))
+
 
 (bld-gen:defmeth2 / ((a number) (b funcl-function))
   (make-instance 'combination-function 
@@ -197,9 +210,11 @@
                  :function-2 b
                  :range (range b)
                  :domain (domain b)
-                 :differentiator (lambda () (* (- a) 
-                                               (/ (differentiate b)
-                                                  (* b b))))
+                 :differentiator (lambda () (* (- a)
+                                               (/ b)
+                                               (differentiate b)
+                                               (/ b)
+                                              ))
                  :lambda-function (lambda (arg) (/ a (evaluate b arg)))))
 
 (bld-gen:defmeth1 / ((a funcl-function)) (/ 1 a))
@@ -282,6 +297,10 @@
                                  b (coefficients a))))
 
 (bld-gen:defmeth2 * ((a number) (b multivariate-polynomial)) (* b a))
+
+
+(bld-gen:defmeth2 * ((a multivariate-polynomial) (b array)) (* (constant b) a))
+(bld-gen:defmeth2 * ((a funcl-function) (b array)) (* a (constant b)))
 
 (bld-gen:defmeth1 - ((a multivariate-polynomial)) 
   (make-multivariate-polynomial 
@@ -386,8 +405,18 @@
                  :range (range function)))
 
 (defmethod bld-gen:sqrt ((array array))
-  (unless (array-dimensions array)
-    (sqrt (aref array))))
+  (if (array-dimensions array)
+      
+                                        ;(magicl-matrix->multidimensional-array (magicl:exptm (simple-array->magicl-matrix array) 0.5))
+      (if (= 1 (length (array-dimensions array)))
+          (map 'vector #'sqrt array)
+          (multiple-value-bind (values vectors) (magicl:eig (simple-array->magicl-matrix array))
+            (magicl-matrix->multidimensional-array (* vectors (aops:generate (lambda (subscript)
+                                                                               (if (= (first subscript) (second subscript))
+                                                                                   (aref (sqrt values) (first subscript))
+                                                                                   0)) (list (length values) (length values)) :subscripts)
+                                                      (transpose vectors)))))
+      (sqrt (aref array))))
 
 (defmethod bld-gen:expt ((function funcl-function) exponent)
   (make-instance 'funcl-function

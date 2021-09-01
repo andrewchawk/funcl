@@ -44,7 +44,7 @@
 @export
 (defgeneric tensor-product (a b))
 
-(defmethod tensor-product ((a simple-array) (b simple-array))
+(defmethod tensor-product ((a array) (b array))
   (aops:outer #'* a b))
 
 (defmethod tensor-product ((a simple-array) (b number))
@@ -71,11 +71,13 @@
   (%tensor-contract-dimensions (array-dimensions tensor) index-1 index-2))
 
 (defun %tensor-contract-dimensions (dimensions index-1 index-2 )
-  (when dimensions
-    (append
-     (subseq dimensions 0 (min index-1 index-2))
-     (subseq dimensions (1+ (min index-1 index-2)) (max index-1 index-2))
-     (subseq dimensions (1+ (max index-1 index-2))))))
+  (if (eq dimensions 'scalar)
+      nil
+      (when dimensions
+        (append
+         (subseq dimensions 0 (min index-1 index-2))
+         (subseq dimensions (1+ (min index-1 index-2)) (max index-1 index-2))
+         (subseq dimensions (1+ (max index-1 index-2)))))))
 
 @export
 (defgeneric tensor-contract (tensor index-1 index-2))

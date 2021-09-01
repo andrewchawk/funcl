@@ -134,7 +134,7 @@
                  :range 'square-matrix
                  :differentiator
                  (lambda () (solve-anticommutator a
-                                                  (- b
+                                                  (- (differentiate b)
                                                      (* (differentiate a) (solve-anticommutator a b))
                                                      (* (solve-anticommutator a b) (differentiate a)))))))
 
