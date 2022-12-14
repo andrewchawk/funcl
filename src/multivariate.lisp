@@ -46,6 +46,9 @@
 
 (defmethod tensor-product ((a array) (b array))
   (aops:outer #'* a b))
+(defmethod tensor-product ((a magicl:matrix) (b magicl:matrix))
+  (aops:outer #'* (magicl-matrix->multidimensional-array a)
+              (magicl-matrix->multidimensional-array b)))
 
 (defmethod tensor-product ((a simple-array) (b number))
   (aops:outer #'* (make-array nil :initial-element b) a))
